@@ -69,5 +69,8 @@ public class AccountServiceTest {
                 "john.doe+test@domain.co");
         assertTrue(result); // email có + vẫn hợp lệ
     }
+
+
+
 }
 
