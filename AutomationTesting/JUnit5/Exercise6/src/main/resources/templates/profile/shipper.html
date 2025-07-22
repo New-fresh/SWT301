@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Shipper Panel - LibBook</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet"/>
+
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --background-light: #f4f4f9;
+            --card-bg: #ffffff;
+            --text-dark: #2c3e50;
+            --text-light: #7f8c8d;
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            --hover-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #f4f4f9 0%, #e0e7ff 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            color: #fff;
+            padding: 20px;
+            box-shadow: 2px 0 15px rgba(0, 0, 0, 0.2);
+            position: fixed;
+            height: 100vh;
+            transition: width 0.3s ease;
+        }
+
+        .sidebar h2 {
+            font-size: 1.6rem;
+            margin-bottom: 30px;
+            text-align: center;
+            color: #ecf0f1;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .sidebar ul li {
+            padding: 15px 20px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            margin-bottom: 5px;
+        }
+
+        .sidebar ul li:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #3498db;
+            transform: translateX(5px);
+        }
+
+        .sidebar ul li.active {
+            font-weight: bold;
+            background: rgba(52, 73, 94, 0.8);
+            color: #fff;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px 30px;
+            background-color: transparent;
+            margin-left: 250px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(90deg, #ecf0f1 0%, #fff 100%);
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 25px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .topbar h1 {
+            font-size: 1.9rem;
+            margin: 0;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .staff-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .staff-info img {
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            border: 2px solid #3498db;
+            transition: transform 0.3s ease;
+        }
+
+        .staff-info img:hover {
+            transform: scale(1.1);
+        }
+
+        .staff-info span {
+            font-size: 1.1rem;
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+
+        .profile-section, .orders-table {
+            background: linear-gradient(145deg, #ffffff 0%, #f9f9f9 100%);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .profile-section h2, .orders-table h2 {
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 5px;
+        }
+
+        .profile-section label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-dark);
+        }
+
+        .profile-section input, .profile-section textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .profile-section input:focus, .profile-section textarea:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+            outline: none;
+        }
+
+        .profile-section button {
+            background: linear-gradient(90deg, #3498db 0%, #2980b9 100%);
+            color: #fff;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .profile-section button:hover {
+            background: linear-gradient(90deg, #2980b9 0%, #1e6b9f 100%);
+            transform: translateY(-2px);
+            box-shadow: var(--hover-shadow);
+        }
+
+        .orders-table table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: #fff;
+            box-shadow: var(--shadow);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .orders-table th, .orders-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+            transition: background 0.3s ease;
+        }
+
+        .orders-table th {
+            background: var(--primary-color);
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .orders-table td:hover {
+            background: #f8f9fa;
+        }
+
+        .status-select {
+            padding: 5px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .manage-orders {
+            background: linear-gradient(145deg, #ffffff 0%, #f9f9f9 100%);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+
+        .search-sort-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .search-sort-container input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .search-sort-container select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fff;
+        }
+
+        .manage-orders table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: #fff;
+            box-shadow: var(--shadow);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .manage-orders th, .manage-orders td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .manage-orders th {
+            background: var(--primary-color);
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .status-select {
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.375rem;
+            border: 1px solid #ced4da;
+            background-color: #ffffff;
+            font-size: 0.875rem;
+            transition: border-color 0.2s ease;
+        }
+
+        .status-select:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+
+        .btn-update {
+            background-color: #0d6efd;
+            color: #ffffff;
+            border: none;
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+            margin-left: 0.5rem;
+        }
+
+        .btn-update:hover {
+            background-color: #0b5ed7;
+        }
+
+        .btn-details {
+            background-color: #198754;
+            color: #ffffff;
+            border: none;
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn-details:hover {
+            background-color: #157347;
+        }
+
+        .product-image {
+            max-width: 60px;
+            max-height: 60px;
+            object-fit: cover;
+            border-radius: 0.25rem;
+        }
+
+        .modal-dialog {
+            max-width: 70%;
+        }
+
+        .modal-content {
+            border-radius: 0.5rem;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .modal-footer {
+            border-top: 1px solid #e9ecef;
+        }
+
+        .order-summary {
+            font-size: 1rem;
+            color: #2c3e50;
+        }
+
+        .order-summary p {
+            margin: 0.5rem 0;
+        }
+
+        .order-summary strong {
+            color: #1a1a1a;
+        }
+
+        #orderTotal {
+            color: #198754;
+            font-weight: 600;
+        }
+
+        #orderQuantity {
+            color: #0d6efd;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background-color: #e2e3e5;
+            color: #41464b;
+        }
+
+        .status-processing {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-delivered {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-cancelled {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 200px;
+            }
+
+            .main-content {
+                margin-left: 200px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+            }
+
+            .topbar {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard-container">
+    <aside class="sidebar">
+        <h2>🚚 Shipper Panel</h2>
+        <nav>
+            <ul>
+                <li data-section="profile-section">👤 Manage Profile</li>
+                <li data-section="manage-orders-section">🛒 Manage Orders</li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <h1>Shipper Dashboard</h1>
+            <div class="staff-info">
+                <span th:text="'Hello, ' + ${shipperName ?: 'Shipper'}">Hello, Shipper</span>
+                <img src="https://i.pravatar.cc/40" alt="Avatar" id="shipper-avatar"/>
+            </div>
+        </header>
+
+        <section class="profile-section" id="profile-section">
+            <h2>Manage Profile</h2>
+            <form id="profileForm">
+                <label for="shipper-name">Shipper Name</label>
+                <input type="text" id="shipper-name" value="Nguyen Van A"/>
+
+                <label for="shipper-email">Email</label>
+                <input type="email" id="shipper-email" value="shipper@example.com"/>
+
+                <label for="shipper-phone">Phone Number</label>
+                <input type="text" id="shipper-phone" value="0901234567"/>
+
+                <label for="shipper-avatar-input">Change Avatar</label>
+                <input type="file" id="shipper-avatar-input" accept="image/*" onchange="previewAvatar(event)"/>
+                <img id="avatar-preview" src="https://i.pravatar.cc/40" alt="Avatar Preview"
+                     style="max-width: 100px; margin-top: 10px; display: block;"/>
+
+                <label for="current-password">Current Password</label>
+                <input type="password" id="current-password" value="password123"/>
+
+                <label for="new-password">New Password</label>
+                <input type="password" id="new-password" value=""/>
+
+                <button type="submit">Update Profile</button>
+            </form>
+        </section>
+
+        <section class="manage-orders" id="manage-orders-section">
+            <h2>Order Management & Delivery Status</h2>
+            <div class="search-sort-container">
+                <input type="text" id="orderSearchInput" placeholder="Search by order ID, user ID of Status"/>
+                <select id="orderSortSelect">
+                    <option value="id-asc">Order ID (Asc)</option>
+                    <option value="id-desc">Order ID (Desc)</option>
+                    <option value="date-asc">Create Date (Oldest First)</option>
+                    <option value="date-desc">Create Date (Newest First)</option>
+                    <option value="status-asc">Status (A-Z)</option>
+                    <option value="status-desc">Status (Z-A)</option>
+                </select>
+            </div>
+            <table>
+                <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer Name</th>
+                    <th>Phone</th>
+                    <th>Address</th>
+                    <th>Create Date</th>
+                    <th>Coupon ID</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody id="order-table-body-admin">
+                </tbody>
+            </table>
+            <div class="pagination" id="order-pagination"></div>
+            <div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-labelledby="orderDetailsModalLabel"
+                 aria-hidden="true">
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="orderDetailsModalLabel">Order Details</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <table class="details-table">
+                                <thead>
+                                <tr>
+                                    <th>Order Detail ID</th>
+                                    <th>Product Image</th>
+                                    <th>Product Name</th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>User ID</th>
+                                    <th>Rating</th>
+                                    <th>Author</th>
+                                    <th>Discount</th>
+                                </tr>
+                                </thead>
+                                <tbody id="orderDetailsBody">
+                                </tbody>
+                            </table>
+                            <div class="order-summary mt-3">
+                                <p><strong>Total Amount:</strong> <span id="orderTotal">$0.00</span></p>
+                                <p><strong>Total Quantity:</strong> <span id="orderQuantity">0</span></p>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const sidebarItems = document.querySelectorAll('.sidebar ul li');
+    const sections = document.querySelectorAll('.main-content section');
+    let activeSectionIndex = -1;
+    let originalAllOrders = [];
+    let allOrders = [];
+    let orderStatuses = [];
+    const itemsPerPage = 10;
+    let currentOrderPage = 1;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        sections.forEach(section => section.style.display = 'none');
+        document.getElementById('profile-section').style.display = 'block';
+    });
+
+    sidebarItems.forEach((item, index) => {
+        item.addEventListener('click', () => {
+            const sectionId = item.getAttribute('data-section');
+            const currentSection = document.getElementById(sectionId);
+
+            if (activeSectionIndex === index && currentSection.style.display === 'block') {
+                return;
+            }
+
+            sidebarItems.forEach(li => li.classList.remove('active'));
+            sections.forEach(section => section.style.display = 'none');
+
+            if (currentSection) {
+                currentSection.style.display = 'block';
+                item.classList.add('active');
+                if (sectionId === 'manage-orders-section') {
+                    fetchOrders();
+                }
+            }
+
+            activeSectionIndex = index;
+        });
+    });
+
+    function previewAvatar(event) {
+        const file = event.target.files[0];
+        const preview = document.getElementById('avatar-preview');
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                preview.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    document.getElementById('profileForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        alert('Profile updated successfully! (Hardcoded)');
+        const newAvatar = document.getElementById('shipper-avatar-input').files[0];
+        if (newAvatar) {
+            document.getElementById('shipper-avatar').src = URL.createObjectURL(newAvatar);
+        }
+    });
+
+    async function fetchOrders() {
+        try {
+            const [ordersResponse, statusesResponse] = await Promise.all([
+                fetch('http://localhost:8080/api/orders'),
+                fetch('http://localhost:8080/api/order-statuses')
+            ]);
+            if (!ordersResponse.ok) throw new Error('Failed to load orders: ' + ordersResponse.statusText);
+            if (!statusesResponse.ok) throw new Error('Failed to load statuses: ' + statusesResponse.statusText);
+
+            const ordersData = await ordersResponse.json();
+            const statusesData = await statusesResponse.json();
+
+            originalAllOrders = ordersData;
+            orderStatuses = statusesData;
+            allOrders = [...originalAllOrders];
+
+            // Fetch customer names and phones for each order
+            const userPromises = allOrders.map(async order => {
+                try {
+                    const userResponse = await fetch(`http://localhost:8080/${order.userId}`);
+                    if (userResponse.ok) {
+                        const user = await userResponse.json();
+                        order.customerName = `${user.firstName || 'Unknown'} ${user.lastName || 'Unknown'}`.trim() || 'Unknown Unknown';
+                        order.phoneNumber = user.phoneNumber || 'N/A';
+                    } else {
+                        order.customerName = 'Unknown Unknown';
+                        order.phoneNumber = 'N/A';
+                        console.warn(`User ${order.userId} not found, status: ${userResponse.status}`);
+                    }
+                } catch (error) {
+                    console.error(`Error fetching user ${order.userId}:`, error);
+                    order.customerName = 'Unknown Unknown';
+                    order.phoneNumber = 'N/A';
+                }
+            });
+            await Promise.all(userPromises);
+
+            applyOrderFiltersAndSort();
+            renderOrderPagination();
+        } catch (error) {
+            console.error('Error fetching orders or statuses:', error);
+            alert('Failed to load orders. Check the console for details.');
+        }
+    }
+
+    function renderOrderTable() {
+        const tableBody = document.getElementById('order-table-body-admin');
+        tableBody.innerHTML = '';
+        const startIndex = (currentOrderPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const paginatedOrders = allOrders.slice(startIndex, endIndex);
+        paginatedOrders.forEach(order => {
+            const status = orderStatuses.find(s => s.orderStatusId === order.orderStatusId)?.statusName || 'Unknown';
+            const statusClass = `status-${status.toLowerCase().replace(/\s+/g, '-')}`;
+            const isLocked = order.orderStatusId === 3 || order.orderStatusId === 4; // Delivered (3) or Cancelled (4)
+            const row = `
+                <tr>
+                    <td>${order.orderId}</td>
+                    <td>${order.customerName || 'Unknown Unknown'}</td>
+                    <td>${order.phoneNumber || 'N/A'}</td>
+                    <td>${order.address || 'N/A'}</td>
+                    <td>${(() => {
+                const date = new Date(order.createDate);
+                return date.toLocaleString('sv-SE', {timeZone: 'Asia/Ho_Chi_Minh'}).slice(0, 19).replace('T', ' ');
+            })()}</td>
+                    <td>${order.couponId || 'N/A'}</td>
+                    <td>
+                        <select class="status-select ${statusClass}" id="status-${order.orderId}" onchange="updateStatusColor(this, ${order.orderId})" ${isLocked ? 'disabled' : ''}>
+                            ${orderStatuses.map(s => `
+                                <option value="${s.orderStatusId}" ${s.orderStatusId === order.orderStatusId ? 'selected' : ''}>
+                                    ${s.statusName}
+                                </option>
+                            `).join('')}
+                        </select>
+                    </td>
+                    <td>
+                        <button class="btn-update" onclick="updateStatus(${order.orderId})" ${isLocked ? 'disabled' : ''}>Update</button>
+                        <button class="btn-details" onclick="showDetails(${order.orderId})">View Details</button>
+                    </td>
+                </tr>
+            `;
+            tableBody.innerHTML += row;
+        });
+    }
+
+    function updateStatusColor(selectElement, orderId) {
+        const selectedStatusId = parseInt(selectElement.value);
+        const status = orderStatuses.find(s => s.orderStatusId === selectedStatusId)?.statusName || 'Unknown';
+        const statusClass = `status-${status.toLowerCase().replace(/\s+/g, '-')}`;
+        selectElement.classList.remove('status-pending', 'status-processing', 'status-delivered', 'status-cancelled');
+        selectElement.classList.add(statusClass);
+    }
+
+    function applyOrderFiltersAndSort() {
+        const searchTerm = document.getElementById('orderSearchInput').value.toLowerCase();
+        const sortOption = document.getElementById('orderSortSelect').value;
+        allOrders = [...originalAllOrders];
+        if (searchTerm) {
+            allOrders = allOrders.filter(order => {
+                const status = orderStatuses.find(s => s.orderStatusId === order.orderStatusId)?.statusName || '';
+                return (
+                    order.orderId.toString().includes(searchTerm) ||
+                    (order.customerName && order.customerName.toLowerCase().includes(searchTerm)) ||
+                    (order.phone && order.phone.toLowerCase().includes(searchTerm)) ||
+                    status.toLowerCase().includes(searchTerm)
+                );
+            });
+        }
+        allOrders.sort((a, b) => {
+            switch (sortOption) {
+                case 'id-asc':
+                    return a.orderId - b.orderId;
+                case 'id-desc':
+                    return b.orderId - a.orderId;
+                case 'date-asc':
+                    return new Date(a.createDate) - new Date(b.createDate);
+                case 'date-desc':
+                    return new Date(b.createDate) - new Date(a.createDate);
+                case 'status-asc':
+                    const statusA = orderStatuses.find(s => s.orderStatusId === a.orderStatusId)?.statusName || '';
+                    const statusB = orderStatuses.find(s => s.orderStatusId === b.orderStatusId)?.statusName || '';
+                    return statusA.localeCompare(statusB);
+                case 'status-desc':
+                    const statusB2 = orderStatuses.find(s => s.orderStatusId === b.orderStatusId)?.statusName || '';
+                    const statusA2 = orderStatuses.find(s => s.orderStatusId === a.orderStatusId)?.statusName || '';
+                    return statusB2.localeCompare(statusA2);
+                default:
+                    return 0;
+            }
+        });
+    }
+
+    function renderOrderPagination() {
+        const totalPages = Math.ceil(allOrders.length / itemsPerPage);
+        const pagination = document.getElementById('order-pagination');
+        pagination.innerHTML = '';
+        const prevButton = document.createElement('button');
+        prevButton.textContent = 'Previous';
+        prevButton.disabled = currentOrderPage === 1;
+        prevButton.addEventListener('click', () => {
+            if (currentOrderPage > 1) {
+                currentOrderPage--;
+                renderOrderTable();
+                renderOrderPagination();
+            }
+        });
+        pagination.appendChild(prevButton);
+        for (let i = 1; i <= totalPages; i++) {
+            const pageButton = document.createElement('button');
+            pageButton.textContent = i;
+            pageButton.disabled = i === currentOrderPage;
+            pageButton.addEventListener('click', () => {
+                currentOrderPage = i;
+                renderOrderTable();
+                renderOrderPagination();
+            });
+            pagination.appendChild(pageButton);
+        }
+        const nextButton = document.createElement('button');
+        nextButton.textContent = 'Next';
+        nextButton.disabled = currentOrderPage === totalPages;
+        nextButton.addEventListener('click', () => {
+            if (currentOrderPage < totalPages) {
+                currentOrderPage++;
+                renderOrderTable();
+                renderOrderPagination();
+            }
+        });
+        pagination.appendChild(nextButton);
+        renderOrderTable();
+    }
+
+    function updateStatus(orderId) {
+        const newStatusId = document.getElementById(`status-${orderId}`).value;
+        fetch(`http://localhost:8080/api/orders/${orderId}/status`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({orderStatusId: parseInt(newStatusId)})
+        })
+            .then(response => {
+                if (!response.ok) throw new Error('Failed to update status: ' + response.statusText);
+                alert('Status updated successfully!');
+                fetchOrders();
+            })
+            .catch(error => {
+                console.error('Error updating status:', error);
+                alert('Failed to update status. Check console for details.');
+            });
+    }
+
+    async function showDetails(orderId) {
+        try {
+            const response = await fetch(`http://localhost:8080/api/orders/${orderId}`);
+            if (!response.ok) throw new Error(`Failed to fetch order details: ${response.statusText}`);
+            const order = await response.json();
+            const details = order.orderDetails || [];
+            const tbody = document.getElementById('orderDetailsBody');
+            tbody.innerHTML = '';
+
+            let totalAmount = 0;
+            let totalQuantity = 0;
+            for (const detail of details) {
+                if (detail.price !== undefined && detail.quantity !== undefined) {
+                    totalAmount += detail.price * detail.quantity;
+                    totalQuantity += detail.quantity;
+                }
+            }
+
+            if (details.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9">No details available</td></tr>';
+            } else {
+                for (const detail of details) {
+                    let product = {
+                        productName: 'N/A',
+                        imageFile: '',
+                        userId: 'N/A',
+                        rating: 'N/A',
+                        author: 'N/A',
+                        discount: 'N/A'
+                    };
+                    try {
+                        const productResponse = await fetch(`http://localhost:8080/api/products/${detail.productId}`);
+                        if (productResponse.ok) {
+                            product = await productResponse.json();
+                        } else {
+                            console.warn(`Product with id ${detail.productId} not found, status: ${productResponse.status}`);
+                        }
+                    } catch (productError) {
+                        console.error(`Error fetching product with id ${detail.productId}:`, productError);
+                    }
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                    <td>${detail.orderDetailId !== undefined ? detail.orderDetailId : 'N/A'}</td>
+                    <td><img src="${product.imageFile || ''}" alt="Product Image" class="product-image"></td>
+                    <td>${product.productName}</td>
+                    <td>${detail.price !== undefined ? (detail.price * ((100 - product.discount) / 100)).toFixed(2) + " VND" : 'N/A'}</td>
+                    <td>${detail.quantity !== undefined ? detail.quantity : 'N/A'}</td>
+                    <td>${product.userId}</td>
+                    <td>${product.rating}</td>
+                    <td>${product.author}</td>
+                    <td>${product.discount !== undefined ? product.discount + '%' : 'N/A'}</td>
+                `;
+                    tbody.appendChild(row);
+                }
+            }
+
+            document.getElementById('orderTotal').textContent = `${totalAmount.toFixed(2)} VND`;
+            document.getElementById('orderQuantity').textContent = totalQuantity;
+
+            const modalElement = document.getElementById('orderDetailsModal');
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        } catch (error) {
+            console.error('Error fetching order details:', error);
+            const tbody = document.getElementById('orderDetailsBody');
+            tbody.innerHTML = '<tr><td colspan="9">Error loading details: ' + error.message + '</td></tr>';
+            document.getElementById('orderTotal').textContent = '0.00 VND';
+            document.getElementById('orderQuantity').textContent = '0';
+            new bootstrap.Modal(document.getElementById('orderDetailsModal')).show();
+        }
+    }
+
+    document.getElementById('orderSearchInput').addEventListener('input', () => {
+        applyOrderFiltersAndSort();
+        currentOrderPage = 1;
+        renderOrderPagination();
+    });
+
+    document.getElementById('orderSortSelect').addEventListener('change', () => {
+        applyOrderFiltersAndSort();
+        currentOrderPage = 1;
+        renderOrderPagination();
+    });
+</script>
+</body>
+</html>

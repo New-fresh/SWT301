@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Upload New Book</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <style>
+        .upload-form {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .book-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: none;
+            border-radius: 10px;
+        }
+
+        .book-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .book-card img {
+            height: 250px;
+            object-fit: cover;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+
+        .book-tag {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .book-author {
+            font-style: italic;
+            color: #888;
+        }
+    </style>
+</head>
+
+<body>
+<div th:insert="~{fragments/navbar :: navbar}"></div>
+<div class="container my-5">
+
+    <div class="upload-form mb-5" style="margin-top: 100px">
+        <h1 class="text-center mb-4">Upload New Book</h1>
+        <form id="uploadBookForm">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="name" class="form-label">Book Name</label>
+                    <input type="text" class="form-control" id="name" placeholder="Enter book name" required/>
+                </div>
+                <div class="col-md-6">
+                    <label for="author" class="form-label">Author</label>
+                    <input type="text" class="form-control" id="author" placeholder="Enter author name" required/>
+                </div>
+                <div class="col-md-6">
+                    <label for="price" class="form-label">Price ($)</label>
+                    <input type="number" step="0.01" class="form-control" id="price" placeholder="Enter price" required/>
+                </div>
+                <div class="col-md-6">
+                    <label for="discount" class="form-label">Discount (%)</label>
+                    <input type="number" class="form-control" id="discount" placeholder="Enter discount (0-100)" min="0" max="100" value="0"/>
+                </div>
+                <div class="col-md-6">
+                    <label for="available" class="form-label">Available (Quantity)</label>
+                    <input type="number" class="form-control" id="available" placeholder="Enter quantity available" required/>
+                </div>
+                <div class="col-md-6">
+                    <label for="tags" class="form-label">Tags</label>
+                    <select class="form-control" id="tags" name="tags" multiple style="width: 100%;"></select>
+                </div>
+                <div class="col-12">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea class="form-control" id="description" rows="3" placeholder="Enter description" required></textarea>
+                </div>
+                <div class="col-12">
+                    <label for="img" class="form-label">Image File</label>
+                    <input type="file" class="form-control" id="img" accept="image/*" required/>
+                </div>
+                <div class="col-12 text-center">
+                    <button type="submit" class="btn btn-primary mt-3">Upload Book</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-3 g-4" id="bookList">
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    const books = [];
+
+    $(document).ready(function() {
+        fetch('http://localhost:8080/api/Tag/')
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(tags => {
+                const select = $('#tags');
+                select.select2({
+                    data: tags.map(tag => ({ id: tag.tagId, text: tag.tagName })),
+                    placeholder: "Select tags...",
+                    allowClear: true
+                });
+                console.log('Tags loaded:', tags);
+            })
+            .catch(error => {
+                console.error('Error fetching tags:', error);
+                alert('Failed to load tags. Check console for details.');
+            });
+    });
+
+    function renderBooks() {
+        const bookList = document.getElementById('bookList');
+        bookList.innerHTML = '';
+        books.forEach(book => {
+            const card = `
+                <div class="col">
+                    <div class="book-card card h-100">
+                        <img src="${book.img}" class="card-img-top" alt="${book.name}">
+                        <div class="card-body">
+                            <p class="book-tag">${book.tag || 'No tags'}</p>
+                            <h5 class="card-title">${book.name}</h5>
+                            <p class="card-text">${book.description}</p>
+                            <p class="book-author">by ${book.author}</p>
+                            <p class="card-text">Available: ${book.available}</p>
+                            <p class="card-text fw-bold">$${book.price.toFixed(2)}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            bookList.innerHTML += card;
+        });
+    }
+
+    document.getElementById('uploadBookForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const name = document.getElementById('name').value;
+        const description = document.getElementById('description').value;
+        const price = parseFloat(document.getElementById('price').value);
+        const available = parseInt(document.getElementById('available').value);
+        const author = document.getElementById('author').value;
+        const discount = parseInt(document.getElementById('discount').value) || 0;
+        const tagIds = $('#tags').val();
+        const imgInput = document.getElementById('img');
+        const file = imgInput.files[0];
+
+        if (!file) {
+            alert('Please select an image file!');
+            return;
+        }
+
+        if (!tagIds || tagIds.length === 0) {
+            alert('Please select at least one tag!');
+            return;
+        }
+
+        if (isNaN(available) || available < 0) {
+            alert('Please enter a valid quantity for Available!');
+            return;
+        }
+
+        if (discount < 0 || discount > 100) {
+            alert('Discount must be between 0 and 100!');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const imgDataUrl = e.target.result;
+
+            const newBook = {
+                productName: name,
+                description: description,
+                price: price,
+                available: available,
+                author: author,
+                discount: discount,
+                imageFile: imgDataUrl
+            };
+
+            fetch('http://localhost:8080/api/products?tagIds=' + (tagIds ? tagIds.join(',') : ''), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(newBook)
+            })
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to upload book');
+                    return response.json();
+                })
+                .then(data => {
+                    books.push({ ...newBook, img: imgDataUrl, tag: tagIds.map(id => id).join(', ') });
+                    renderBooks();
+                    document.getElementById('uploadBookForm').reset();
+                    $('#tags').val(null).trigger('change');
+                    alert('Book uploaded successfully!');
+                })
+                .catch(error => {
+                    console.error('Error uploading book:', error);
+                    alert('Failed to upload book. Check console for details.');
+                });
+        };
+        reader.readAsDataURL(file);
+    });
+
+    renderBooks();
+</script>
+<div th:insert="~{fragments/footer :: footer}"></div>
+</body>
+
+</html>

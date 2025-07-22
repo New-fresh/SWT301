@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>LibBook - Online Bookstore</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet"/>
+
+
+
+    <link rel="stylesheet" href="/css/home.css"/>
+    <link rel="shortcut icon"
+          href="https://rails-assets-us.bookshop.org/assets/favicon-63cb20989e2516343feeab429626798a43afdaa28eeaba777b7e0acde8a25dd2.png"/>
+    <style>
+        .new-arrivals .carousel-item {
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .new-arrivals .book-card {
+            transition: transform 0.3s ease;
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .new-arrivals .book-card img {
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .new-arrivals .book-card .card-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+        }
+
+        .new-arrivals .book-card .card-text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .combo-card {
+            background-color: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .combo-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .combo-books {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .combo-books .book-card {
+            flex: 1 1 calc(25% - 15px);
+            max-width: calc(25% - 15px);
+            background-color: #f8f9fa;
+        }
+
+        @media (max-width: 768px) {
+            .combo-books .book-card {
+                flex: 1 1 calc(50% - 10px);
+                max-width: calc(50% - 10px);
+            }
+        }
+
+        .carousel-indicators {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+        }
+
+        .carousel-indicators [data-bs-target] {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #fff;
+            border: 1px solid #000;
+            opacity: 0.5;
+            margin: 0 5px;
+        }
+
+        .carousel-indicators .active {
+            opacity: 1;
+            background-color: #000;
+        }
+
+        .custom-carousel-buttons {
+            text-align: center;
+        }
+
+        .custom-carousel-buttons .btn {
+            margin: 0 10px;
+        }
+
+        .product-image {
+            max-width: 60px;
+            max-height: 60px;
+            object-fit: cover;
+            border-radius: 0.25rem;
+        }
+
+        .modal-dialog {
+            max-width: 70%;
+        }
+
+        .modal-content {
+            border-radius: 0.5rem;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .modal-footer {
+            border-top: 1px solid #e9ecef;
+        }
+
+        .order-summary {
+            font-size: 1rem;
+            color: #2c3e50;
+        }
+
+        .order-summary p {
+            margin: 0.5rem 0;
+        }
+
+        .order-summary strong {
+            color: #1a1a1a;
+        }
+
+        #orderTotal {
+            color: #198754;
+            font-weight: 600;
+        }
+
+        #orderQuantity {
+            color: #0d6efd;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<div th:insert="~{fragments/navbar :: navbar}"></div>
+
+<section class="hero bg-light py-5 mt-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-3">
+                    Discover Your Next
+                    <span class="text-primary">Great Read</span>
+                </h1>
+                <p class="lead mb-4">Explore thousands of books at your fingertips!</p>
+                <div class="search-form mb-4">
+                    <form th:action="@{/category/search}" method="get" class="bg-white p-4 rounded shadow-sm">
+                        <div class="row g-3">
+                            <div class="col-md-5">
+                                <input type="text" class="form-control" name="searchQuery"
+                                       placeholder="Search by title or author"/>
+                            </div>
+                            <div class="col-md-4">
+                                <select class="form-select" name="selectedTag" id="categorySelect"
+                                        onchange="redirectToCategory()">
+                                    <option value="" selected>All Categories</option>
+                                    <option th:each="tag : ${tags}" th:value="${tag.tagName}"
+                                            th:text="${tag.tagName}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <button type="submit" class="btn btn-primary w-100">Search</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <img src="https://images.unsplash.com/photo-1507842217343-583bb7270b66" alt="Books"
+                     class="img-fluid rounded shadow"/>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Categories -->
+<section class="featured-categories py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Popular Categories</h2>
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="category-card text-center p-4 bg-white rounded shadow-sm h-100">
+                    <i class="ri-book-line fs-1 text-primary mb-3"></i>
+                    <h4><a th:href="@{/category/Fiction}" style="color: inherit; text-decoration: none;">Fiction</a>
+                    </h4>
+                    <p class="text-muted">Explore imaginative worlds</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="category-card text-center p-4 bg-white rounded shadow-sm h-100">
+                    <i class="ri-lightbulb-line fs-1 text-primary mb-3"></i>
+                    <h4><a th:href="@{/category/Non-Fiction}"
+                           style="color: inherit; text-decoration: none;">Non-Fiction</a></h4>
+                    <p class="text-muted">Expand your knowledge</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="category-card text-center p-4 bg-white rounded shadow-sm h-100">
+                    <i class="ri-heart-line fs-1 text-primary mb-3"></i>
+                    <h4><a th:href="@{/category/Romance}" style="color: inherit; text-decoration: none;">Romance</a>
+                    </h4>
+                    <p class="text-muted">Fall in love with stories</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="category-card text-center p-4 bg-white rounded shadow-sm h-100">
+                    <i class="ri-ghost-line fs-1 text-primary mb-3"></i>
+                    <h4><a th:href="@{/category/Mystery}" style="color: inherit; text-decoration: none;">Mystery</a>
+                    </h4>
+                    <p class="text-muted">Unravel the unknown</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="new-arrivals" class="new-arrivals py-3 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">New Arrivals</h2>
+        <div th:if="${products == null or products.isEmpty()}">
+            <p class="text-center text-muted">No products available at the moment.</p>
+        </div>
+        <div th:unless="${products == null or products.isEmpty()}" id="newArrivalsCarousel" class="carousel slide"
+             data-bs-ride="carousel">
+            <div class="new-arrivals-content" style="height: 500px">
+                <div th:each="i : ${#numbers.sequence(0, products.size() - 1, 8)}"
+                     th:with="pageProducts=${products.subList(i, i + 8 < products.size() ? i + 8 : products.size())}"
+                     th:classappend="${i == 0} ? 'carousel-item active' : 'carousel-item'">
+                    <div class="row g-4">
+                        <div class="col-lg-3 col-md-6" th:each="product : ${pageProducts}">
+                            <div class="book-card bg-white rounded shadow-sm p-1">
+                                <img th:src="${product.imageFile}"
+                                     class="card-img-top" alt="Book Cover"/>
+                                <div class="card-body">
+                                    <p class="text-primary mb-1">Book</p>
+                                    <h5 class="card-title" th:text="${product.productName}"></h5>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span style="font-size: 14px; color: red"
+                                                  th:if="${product.discount > 0}"
+                                                  class="h5 mb-0 text-decoration-line-through ms-2"
+                                                  th:text="${#numbers.formatDecimal(product.price, 2, 2)} + ' VND'">
+                                            </span>
+                                            <span style="font-size: 16px;font-weight: bold"
+                                                  th:with="discountedPrice=${product.discount > 0 ? product.price * (100 - product.discount) / 100 : product.price}"
+                                                  th:text="${#numbers.formatDecimal(discountedPrice, 2, 2)}+' VND'">
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div style="max-width: 50%; margin-top: 10px">
+                                        <a th:href="@{/product/{id}(id=${product.productId})}"
+                                           class="btn btn-outline-primary">View Details</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="custom-carousel-buttons">
+                <button class="btn btn-primary" id="prevButton">
+                    <i class="ri-arrow-left-line"></i> Previous
+                </button>
+                <button class="btn btn-primary" id="nextButton">
+                    Next <i class="ri-arrow-right-line"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Top Sale -->
+<section id="top-sale" class="new-arrivals py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Top Sale</h2>
+        <div id="top-sale-content">
+            <!-- JavaScript sẽ render sách bán chạy tại đây -->
+        </div>
+    </div>
+</section>
+
+<!-- Book Combos by Tag -->
+<section id="tag-combos" class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">Book Combos by Theme</h2>
+        <div id="tag-combo-content" class="row gy-4">
+            <!-- JS sẽ render từng combo tại đây -->
+        </div>
+    </div>
+</section>
+
+<!-- About Section -->
+<section id="about" class="about py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h2 class="mb-4">Your Ultimate Book Destination</h2>
+                <p class="lead mb-4">Welcome to LibBook, your premier destination for literature of all kinds.</p>
+                <p class="mb-4">
+                    We're passionate about bringing the joy of reading to everyone through our carefully curated
+                    collection of books. With thousands of titles across various genres, competitive prices, and
+                    exceptional customer
+                    service, we strive to make every reading journey special.
+                </p>
+                <a href="#" class="btn btn-primary">Learn More</a>
+            </div>
+            <div class="col-lg-6">
+                <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570" class="img-fluid rounded shadow"
+                     alt="About Us"/>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Customer Reviews -->
+<section class="reviews py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">What Our Readers Say</h2>
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="review-card bg-white p-4 rounded shadow-sm h-100">
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="https://i.postimg.cc/fWCHgFxb/rev1.jpg" class="rounded-circle me-3" width="60"
+                             alt="Sarah"/>
+                        <div>
+                            <h5 class="mb-1">Sarah Nguyễn</h5>
+                            <div class="text-warning">
+                                <i class="ri-star-fill"></i>
+                                <i class="ri-star-fill"></i>
+                                <i class="ri-star-fill"></i>
+                                <i class="ri-star-fill"></i>
+                                <i class="ri-star-half-fill"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-muted">
+                        Great selection of books and amazing prices! The delivery was quick and the books arrived in
+                        perfect
+                        condition.
+                    </p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="review-card bg-white p-4 rounded shadow-sm h-100">
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="https://i.postimg.cc/YSxgCc2G/rev2.jpg" class="rounded-circle me-3" width="60"
+                             alt="Michael"/>
+                        <div>
+                            <h5 class="mb-1">Michael Trần</h5>
+                            <div class="text-warning">
+                                <i class="ri-star-fill"></i>
+                                <i class="ri-star-fill"></i>
+                                <i class="ri-star-fill"></i>
+                                <i class="ri-star-fill"></i>
+                                <i class="ri-star-fill"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-muted">The website is easy to navigate and the recommendations are always spot
+                        on!</p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="review-card bg-white p-4 rounded shadow-sm h-100">
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="https://i.postimg.cc/Qtx7B6V6/rev3.jpg" class="rounded-circle me-3" width="60"
+                             alt="Emily"/>
+                        <div>
+                            <h5 class="mb-1">Emily Võ</h5>
+                            <div class="text-warning">
+                                <i class="ri-star-fill"></i>
+                                <i class="ri-star-fill"></i>
+                                <i class="ri-star-fill"></i>
+                                <i class="ri-star-fill"></i>
+                                <i class="ri-star-fill"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-muted">
+                        Customer service is exceptional! They helped me find a rare book I'd been looking for.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div th:insert="~{fragments/footer :: footer}"></div>
+
+<!-- Bootstrap Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/components.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var carousel = new bootstrap.Carousel(document.getElementById('newArrivalsCarousel'), {
+            interval: 5000,
+            wrap: true
+        });
+
+        document.getElementById('prevButton').addEventListener('click', function () {
+            carousel.prev();
+        });
+
+        document.getElementById('nextButton').addEventListener('click', function () {
+            carousel.next();
+        });
+    });
+
+    function redirectToCategory() {
+        var select = document.getElementById('categorySelect');
+        var selectedTag = select.value;
+        if (selectedTag) {
+            window.location.href = '/category/' + encodeURIComponent(selectedTag);
+        }
+    }
+
+    document.querySelector('.chatBtn').addEventListener('click', function () {
+        console.log('Chat button clicked');
+    });
+</script>
+<script src="/js/home.js"></script>
+</body>
+</html>
+
+<th:block th:fragment="navbar">
+    <style>
+        .upload-button {
+            display: block;
+            margin: 20px auto;
+            padding: 6px 12px;
+            background-color: #0d6efd;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            text-align: center;
+            width: 180px;
+        }
+    </style>
+    <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <img src="../img/black_text_logo.jpeg" alt="LibBook Logo" height="40"/>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
+                    aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="/home">Home</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="categoriesDropdown" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            Categories
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="categoriesDropdown">
+                            <li th:each="tag : ${tags}">
+                                <a class="dropdown-item" th:href="@{/category/{tagName}(tagName=${tag.tagName})}"
+                                   th:text="${tag.tagName}"></a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#new-arrivals">New Arrivals</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#about">About</a>
+                    </li>
+                </ul>
+
+                <form class="d-flex mx-auto" style="min-width: 300px">
+                    <div class="input-group">
+                        <input class="form-control" type="search" placeholder="Search books, authors..."
+                               aria-label="Search"/>
+                        <button class="btn btn-outline-primary" type="submit">
+                            <i class="ri-search-line"></i>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="d-flex align-items-center ms-auto" style="gap: 7px">
+
+
+                    <th:block th:if="${session.USER != null}">
+                        <button class="btn btn-link position-relative ms-2" id="orderStatusBtn" data-bs-toggle="modal"
+                                data-bs-target="#orderStatusModal">
+                            <i class="ri-file-list-3-line fs-5"></i> Your order
+                        </button>
+                        <a href="/chat-widget" class="btn btn-link position-relative ms-2 p-0 me-2" id="navbarChatBtn" style="height: 20px; width: 20px">
+                            <i class="ri-chat-3-line fs-6"></i>
+                            <span class="position-absolute top-45 start-100 translate-middle badge rounded-pill bg-danger"
+                                  id="NumberOfChat"
+                                  style="margin-right: 60px">
+                            0
+
+                            </span>
+                        </a>
+                        <a href="/cart" class="btn btn-link position-relative ms-2 p-0 me-2" style="height: 20px; width: 20px">
+                            <i class="ri-shopping-cart-2-line fs-5"></i>
+                            <span class="position-absolute top-45 start-100 translate-middle badge rounded-pill bg-danger"
+                                  id="NumberOfCart"
+                                  style="margin-right: 60px">
+                            0
+                        </span>
+                        </a>
+                        <form th:action="@{/profile/{id}(id=${session.USER.getUserId()})}" method="get">
+                            <button class="btn btn-primary">Profile</button>
+                        </form>
+                        <form action="/custom-logout" method="post">
+                            <button class="btn btn-warning" type="submit">Logout</button>
+                        </form>
+                    </th:block>
+                    <!-- Nếu chưa đăng nhập -->
+                    <th:block th:if="${session.USER == null}">
+                        <a href="/login" class="btn btn-outline-primary me-2">Sign In</a>
+                        <a href="/register" class="btn btn-primary">Sign Up</a>
+                    </th:block>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Modal for Order Status -->
+    <div class="modal fade" id="orderStatusModal" tabindex="-1" aria-labelledby="orderStatusModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="orderStatusModalLabel">Order Progress</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="orderStatusContent">
+                        <!-- Order data will be loaded here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Order Details -->
+    <div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-labelledby="orderDetailsModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="orderDetailsModalLabel">Order Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-striped">
+                        <thead>
+                        <tr>
+<!--                            <th>Order Detail ID</th>-->
+                            <th>Product Image</th>
+                            <th>Product Name</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+<!--                            <th>User ID</th>-->
+                            <th>Rating</th>
+                            <th>Author</th>
+                            <th>Discount</th>
+                        </tr>
+                        </thead>
+                        <tbody id="orderDetailsBody">
+                        </tbody>
+                    </table>
+                    <div class="order-summary mt-3">
+                        <p><strong>Total Amount:</strong> <span id="orderTotal" style="color: green">0.00 VND</span></p>
+                        <p><strong>Total Quantity:</strong> <span id="orderQuantity" style="color: red">0</span></p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container position-fixed top-0 end-0 pt-5 pe-5">
+        <div class="toast" id="notificationToast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-body" id="toastMessage"></div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <script th:inline="javascript">
+        const user = [[${session.USER}]];
+        const fetchContCart = async () => {
+            try {
+                const response = await fetch(`/cart/api/${user.userId}`, {
+                    method: 'GET'
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch cart count");
+                }
+
+                document.getElementById("NumberOfCart").textContent = await response.json();
+            } catch (error) {
+                console.error("Error fetching cart count:", error);
+            }
+        };
+        fetchContCart();
+
+        // Fetch and display order status
+        document.getElementById('orderStatusBtn').addEventListener('click', async () => {
+            const orderStatusContent = document.getElementById('orderStatusContent');
+            if (user && user.userId) {
+                try {
+                    const response = await fetch('http://localhost:8080/api/orders');
+                    if (!response.ok) throw new Error('Failed to fetch orders');
+                    const orders = await response.json();
+
+                    // Filter orders by userId
+                    const userOrders = orders.filter(order => order.userId === user.userId);
+
+                    if (userOrders.length === 0) {
+                        orderStatusContent.innerHTML = '<p class="text-center text-muted">No Orders Found</p>';
+                    } else {
+                        orderStatusContent.innerHTML = `
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Status</th>
+                                        <th>Create Date</th>
+                                        <th>Address</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${userOrders.map(order => `
+                                        <tr>
+                                            <td>${order.orderId}</td>
+                                            <td>${order.orderStatusId === 1 ? 'Pending' : order.orderStatusId === 2 ? 'Processing' : order.orderStatusId === 3 ? 'Delivered' : 'Cancelled'}</td>
+                                            <td>${new Date(order.createDate).toLocaleString('en-US', {timeZone: 'Asia/Ho_Chi_Minh'})}</td>
+                                            <td>${order.address || 'N/A'}</td>
+                                            <td><button class="btn btn-info btn-sm" onclick="showOrderDetails(${order.orderId})">Order Details</button></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        `;
+                    }
+                } catch (error) {
+                    orderStatusContent.innerHTML = '<p class="text-center text-danger">Error loading orders. Please try again later.</p>';
+                    console.error('Error fetching orders:', error);
+                }
+            } else {
+                orderStatusContent.innerHTML = '<p class="text-center text-muted">Please log in to view your orders.</p>';
+            }
+        });
+
+        // Function to show order details
+        async function showOrderDetails(orderId) {
+            try {
+                const response = await fetch(`http://localhost:8080/api/orders/${orderId}`);
+                if (!response.ok) throw new Error(`Failed to fetch order details: ${response.statusText}`);
+                const order = await response.json();
+                const details = order.orderDetails || [];
+                const tbody = document.getElementById('orderDetailsBody');
+                tbody.innerHTML = '';
+
+                let totalAmount = 0;
+                let totalQuantity = 0;
+
+                if (details.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="9">No details available</td></tr>';
+                } else {
+                    for (const detail of details) {
+                        let product = {
+                            productName: 'N/A',
+                            imageFile: '',
+                            userId: 'N/A',
+                            rating: 'N/A',
+                            author: 'N/A',
+                            discount: 'N/A'
+                        };
+                        try {
+                            const productResponse = await fetch(`http://localhost:8080/api/products/${detail.productId}`);
+                            if (productResponse.ok) {
+                                product = await productResponse.json();
+                            } else {
+                                console.warn(`Product with id ${detail.productId} not found, status: ${productResponse.status}`);
+                            }
+                        } catch (productError) {
+                            console.error(`Error fetching product with id ${detail.productId}:`, productError);
+                        }
+
+                        const discountedPrice = detail.price * ((100 - (product.discount || 0)) / 100);
+                        totalAmount += discountedPrice * detail.quantity;
+                        totalQuantity += detail.quantity;
+
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td><img src="${product.imageFile || ''}" alt="Product Image" class="product-image" style="width: 40px; height: 50px"></td>
+                            <td>${product.productName}</td>
+                            <td>${discountedPrice.toFixed(2)} VND</td>
+                            <td>${detail.quantity !== undefined ? detail.quantity : 'N/A'}</td>
+                            <td>${product.rating || 'N/A'}</td>
+                            <td>${product.author || 'N/A'}</td>
+                            <td>${product.discount !== undefined ? product.discount + '%' : 'N/A'}</td>
+                        `;
+                        tbody.appendChild(row);
+                    }
+                }
+
+                document.getElementById('orderTotal').textContent = `${totalAmount.toFixed(2)} VND`;
+                document.getElementById('orderQuantity').textContent = totalQuantity;
+
+                const modalElement = document.getElementById('orderDetailsModal');
+                const modal = new bootstrap.Modal(modalElement);
+                modal.show();
+            } catch (error) {
+                console.error('Error fetching order details:', error);
+                const tbody = document.getElementById('orderDetailsBody');
+                tbody.innerHTML = '<tr><td colspan="9">Error loading details: ' + error.message + '</td></tr>';
+                document.getElementById('orderTotal').textContent = '0.00 VND';
+                document.getElementById('orderQuantity').textContent = '0';
+                new bootstrap.Modal(document.getElementById('orderDetailsModal')).show();
+            }
+        }
+
+
+
+        //TOAST MESSAGE
+        <!--    Message-->
+
+        function showToast(message, type = 'success') {
+            const toastEl = document.getElementById('notificationToast');
+            const toast = new bootstrap.Toast(toastEl, {delay: 5000});
+            const toastMessage = document.getElementById('toastMessage');
+            toastMessage.textContent = message;
+            toastEl.classList.remove('bg-light', 'bg-danger');
+            toastEl.classList.add(type === 'success' ? 'bg-light' : 'bg-danger');
+            toast.show();
+        }
+        //////STOMJS REAL-TIME NOTIFICATION
+        const _chat = []
+        function connectWebSocket() {
+            let stompClient = null;
+            const socket = new SockJS('/ws');
+            stompClient = Stomp.over(socket);
+            console.log("Dang ket noi")
+            stompClient.connect({}, () => {
+                console.log("✅ WebSocket connected");
+                stompClient.subscribe(`/topic/messages/${user.userId}`, (message) => {
+                    const msg = JSON.parse(message.body);
+                    _chat.push(msg);
+                    document.getElementById("NumberOfChat").textContent = _chat.length;
+                    showToast(`${msg.messageText}`);
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            connectWebSocket();
+        });
+    </script>
+
+</th:block>
+<body>

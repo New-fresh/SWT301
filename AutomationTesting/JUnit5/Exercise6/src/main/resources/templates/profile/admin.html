@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Admin Dashboard - LibBook</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script defer src="/js/admin.js"></script>
+    <script defer src="/js/admin-user.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="/css/admin.css"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+    <style>
+        /* Reset and Global Styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        /* Dashboard Layout */
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 255px;
+            background-color: #1e293b;
+            color: #ffffff;
+            padding: 1.5rem;
+            box-shadow: 3px 0 10px rgba(0, 0, 0, 0.15);
+            transition: width 0.3s ease, transform 0.3s ease;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            z-index: 1000;
+        }
+
+        .sidebar h3 {
+            font-size: 1.75rem;
+            font-weight: 500;
+            text-align: center;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding-top: 15px;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .sidebar li {
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s ease, padding-left 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .sidebar li:hover, .sidebar li.active {
+            background-color: #334155;
+            padding-left: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 80px;
+                padding: 1rem;
+            }
+            .sidebar h3 {
+                font-size: 1.25rem;
+            }
+            .sidebar li {
+                font-size: 0.875rem;
+                justify-content: center;
+            }
+            .sidebar li span {
+                display: none;
+            }
+            .main-content {
+                margin-left: 80px;
+            }
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            padding: 2rem;
+            background-color: #ffffff;
+            transition: margin-left 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 80px;
+            }
+        }
+
+        /* Topbar */
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f1f5f9;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .topbar h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0;
+        }
+
+        .admin-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .admin-info img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #e2e8f0;
+        }
+
+        /* Overview Section */
+        .overview {
+            display: flex; /* Giữ display: flex cho overview */
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .overview h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .time-filter {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+        }
+
+        .time-filter select {
+            padding: 0.5rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            background-color: #ffffff;
+            font-size: 0.875rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .time-filter select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            outline: none;
+        }
+
+        #loading {
+            display: none;
+            text-align: center;
+            color: #64748b;
+            font-size: 0.875rem;
+            padding: 0.5rem;
+        }
+
+        /* Cards */
+        .overview > div {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            justify-content: left;
+        }
+
+        .card {
+            background-color: #ffffff;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 220px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .card h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 0.75rem;
+        }
+
+        .card p {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #3b82f6;
+        }
+
+        @media (max-width: 768px) {
+            .card {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+
+        /* Chart */
+        .Chart {
+            width: 100%;
+            max-height: 400px;
+            margin-top: 1.5rem;
+            border-radius: 0.5rem;
+            background-color: #ffffff;
+            padding: 1rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Tables */
+        .recent-books, .manage-orders, .manage-users, .manage-staffs, .manage-comments, .manage-discounts, .settings {
+            display: none; /* Ẩn mặc định, để JS hiển thị bằng display: block */
+            background-color: #ffffff;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .recent-books table, .manage-orders table, .manage-users table, .manage-staffs table, .manage-comments table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #ffffff;
+        }
+
+        .recent-books th, .manage-orders th, .manage-users th, .manage-staffs th, .manage-comments th {
+            background-color: #f1f5f9;
+            padding: 0.75rem;
+            font-weight: 600;
+            text-align: left;
+            font-size: 0.875rem;
+            color: #1e293b;
+        }
+
+        .recent-books td, .manage-orders td, .manage-users td, .manage-staffs td, .manage-comments td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.875rem;
+            color: #475569;
+        }
+
+        .recent-books tr:hover, .manage-orders tr:hover, .manage-users tr:hover, .manage-staffs tr:hover, .manage-comments tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .recent-books img {
+            width: 50px;
+            height: auto;
+            border-radius: 0.25rem;
+            object-fit: cover;
+        }
+
+        /* Pagination */
+        .pagination {
+            margin-top: 1.5rem;
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .pagination button {
+            padding: 0.5rem 1rem;
+            border: 1px solid #d1d5db;
+            background-color: #ffffff;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background-color: #f1f5f9;
+            border-color: #3b82f6;
+        }
+
+        .pagination button:disabled {
+            background-color: #e2e8f0;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        /* Forms */
+        .manage-discounts form, .settings form {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+
+        .manage-discounts label, .settings label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .manage-discounts input, .manage-discounts textarea, .settings input, .settings textarea {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .manage-discounts input:focus, .manage-discounts textarea:focus, .settings input:focus, .settings textarea:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            outline: none;
+        }
+
+        .manage-discounts button, .settings button {
+            background-color: #1e293b;
+            color: #ffffff;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .manage-discounts button:hover, .settings button:hover {
+            background-color: #334155;
+        }
+
+        /* Search and Sort */
+        .search-sort-container {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .search-sort-container input, .search-sort-container select {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .search-sort-container input:focus, .search-sort-container select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            outline: none;
+        }
+
+        /* Status Select and Buttons */
+        .status-select {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            width: 120px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .status-select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            outline: none;
+        }
+
+        .status-pending {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-processing {
+            background-color: #cffafe;
+            color: #155e75;
+        }
+
+        .status-delivered {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-cancelled {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .btn-update, .btn-details, .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+
+        .btn-update {
+            background-color: #3b82f6;
+            color: #ffffff;
+        }
+
+        .btn-update:hover {
+            background-color: #2563eb;
+            transform: translateY(-2px);
+        }
+
+        .btn-details {
+            background-color: #10b981;
+            color: #ffffff;
+        }
+
+        .btn-details:hover {
+            background-color: #059669;
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background-color: #3b82f6;
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+
+        .btn-danger {
+            background-color: #ef4444;
+            color: #ffffff;
+        }
+
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+
+        .btn-success {
+            background-color: #10b981;
+            color: #ffffff;
+        }
+
+        .btn-success:hover {
+            background-color: #059669;
+        }
+
+        /* Modals */
+        .modal-dialog {
+            max-width: 80%;
+            margin: 1.75rem auto;
+        }
+
+        .modal-content {
+            border-radius: 0.5rem;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-header {
+            background-color: #f1f5f9;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1rem 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            border-top: 1px solid #e2e8f0;
+            padding: 1rem 1.5rem;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1050;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-overlay .modal-content {
+            max-width: 500px;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            background-color: #ffffff;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+            animation: slideIn 0.3s ease;
+        }
+
+        .modal-content1{
+            margin: 100px auto;
+            max-width: 500px;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            background-color: #ffffff;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 1.5rem;
+            color: #64748b;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .close:hover {
+            color: #1e293b;
+        }
+
+        /* Order Summary */
+        .order-summary {
+            font-size: 0.875rem;
+            color: #1e293b;
+            margin-top: 1rem;
+        }
+
+        .order-summary p {
+            margin: 0.5rem 0;
+        }
+
+        .order-summary strong {
+            color: #1e293b;
+        }
+
+        #orderTotal {
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        #orderQuantity {
+            color: #3b82f6;
+            font-weight: 600;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Select2 Overrides */
+        .select2-container--default .select2-selection--single {
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            height: 38px;
+            padding: 0.5rem;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 24px;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 38px;
+        }
+
+        /* Responsive Tables */
+        @media (max-width: 576px) {
+            .recent-books table, .manage-orders table, .manage-users table, .manage-categories table, .manage-comments table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+        }
+
+        #navbar-side {
+            margin-top: 50px;
+        }
+
+        #navbar-side li {
+            margin-top: 5px;
+        }
+
+        .export-btn,.import-btn {
+            border: 1px solid #ccc;          /* viền xám nhạt, mỏng */
+            border-radius: 4px;              /* bo tròn nhẹ */
+            width: 100px;
+            height: 40px;
+            background-color: white;         /* nền trắng */
+            color: #333;                     /* chữ xám đậm */
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .export-btn,.import-btn:hover {
+            background-color: #f5f5f5;       /* đổi màu nhẹ khi hover */
+            border-color: #999;              /* viền đậm hơn khi hover */
+        }
+
+    </style>
+</head>
+<body>
+<div class="dashboard-container">
+    <aside class="sidebar">
+        <h3>📚 Admin Panel</h3>
+        <nav id="navbar-side">
+            <ul>
+                <li data-section="overview-section" class="active">📊 Overview</li>
+                <li data-section="manage-books-section">📦 Manage Books</li>
+                <li data-section="manage-orders-section">🛒 Manage Orders</li>
+                <li data-section="manage-users-section">👥 Manage Users</li>
+                <li data-section="manage-staffs-section">🏷️ Manage Staffs</li>
+                <li data-section="manage-discounts-section">💸 Manage Discounts & Promotions</li>
+                <li data-section="manage-comments-section">💬 Manage Comments</li>
+                <li data-section="settings-section">⚙️ Settings</li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <h1>Admin Dashboard</h1>
+            <div class="admin-info">
+                <a href="/chat-widget" class="btn btn-link position-relative ms-2" id="navbarChatBtn">
+                    <i class="ri-chat-3-line fs-6"></i>
+                </a>
+
+                <span th:if="${session.USER != null}" th:text="'Hello ' + ${session.USER.userName}"></span>
+                <img th:if="${session.USER != null}" th:src="${session.USER.profilePicture}" alt="Avatar"/>
+            </div>
+        </header>
+        <!-- Overview Section -->
+        <section class="overview" id="overview-section">
+            <h2>Statistics Chart</h2>
+            <div class="time-filter d-flex justify-content-between align-items-center">
+                <div>
+                <select class="me-2" id="timeTypeSelect" onchange="updateDashboard()">
+                    <option value="1day" th:selected="${timeType == '1day'}">1 Day</option>
+                    <option value="1week" th:selected="${timeType == '1week'}">1 Week</option>
+                    <option value="1month" th:selected="${timeType == '1month'}">1 Month</option>
+                    <option value="3months" th:selected="${timeType == '3months'}">3 Months</option>
+                    <option value="7months" th:selected="${timeType == '7months'}">7 Months</option>
+                    <option value="lastyear" th:selected="${timeType == 'lastyear'}">Last Year</option>
+                </select>
+                    <button class="export-btn" onclick="exportTableToCSV()">Export CSV</button>
+                </div>
+                <div>
+                    <input type="file" id="excelFile" accept=".xlsx, .xls">
+                    <button class="import-btn" onclick="processExcel()">Import Excel</button>
+                    <input hidden="" id="output"/>
+                </div>
+            </div>
+            <div id="loading">Loading...</div>
+            <div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
+                <div class="card">
+                    <h3>Revenue</h3>
+                    <p id="revenue" th:text="${dashboardData != null and dashboardData.revenue != null} ? ${#numbers.formatDecimal(dashboardData.revenue, 1, 2, 'COMMA')} + '₫' : '0₫'">0₫</p>
+                </div>
+                <div class="card">
+                    <h3>Orders</h3>
+                    <p id="orders" th:text="${dashboardData != null and dashboardData.orders != null} ? ${dashboardData.orders} : 0">0</p>
+                </div>
+                <div class="card">
+                    <h3>Top Book</h3>
+                    <p id="top-book" th:text="${dashboardData != null and dashboardData.topBook != null} ? ${dashboardData.topBook} : 'N/A'">N/A</p>
+                </div>
+                <div class="card">
+                    <h3>New Users</h3>
+                    <p id="users" th:text="${dashboardData != null and dashboardData.users != null} ? ${dashboardData.users} : 0">0</p>
+                </div>
+            </div>
+            <canvas id="Chart" class="Chart" style="max-width: 100%; max-height: 400px;"></canvas>
+        </section>
+
+        <!-- Manage Books Section -->
+        <section class="recent-books" id="manage-books-section">
+            <h2>Manage Books</h2>
+            <div class="search-sort-container">
+                <input type="text" id="searchInput" placeholder="Search by book name or author..."/>
+                <select id="sortSelect">
+                    <option value="name-asc">Name (A-Z)</option>
+                    <option value="name-desc">Name (Z-A)</option>
+                    <option value="price-asc">Price (Low to High)</option>
+                    <option value="price-desc">Price (High to Low)</option>
+                </select>
+            </div>
+            <table class="dataTable">
+                <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Book Name</th>
+                    <th>Author</th>
+                    <th>Price</th>
+                    <th>Discount</th>
+                    <th>Updated Date</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody id="book-table-body"></tbody>
+            </table>
+            <div class="pagination" id="pagination"></div>
+        </section>
+
+        <!-- Manage Orders Section -->
+        <section class="manage-orders" id="manage-orders-section">
+            <h2>Order Management & Delivery Status</h2>
+            <div class="search-sort-container">
+                <input type="text" id="orderSearchInput" placeholder="Search by order ID, user ID or Status"/>
+                <select id="orderSortSelect">
+                    <option value="id-asc">Order ID (Asc)</option>
+                    <option value="id-desc">Order ID (Desc)</option>
+                    <option value="date-asc">Create Date (Oldest First)</option>
+                    <option value="date-desc">Create Date (Newest First)</option>
+                    <option value="status-asc">Status (A-Z)</option>
+                    <option value="status-desc">Status (Z-A)</option>
+                </select>
+            </div>
+            <table class="dataTable">
+                <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>User ID</th>
+                    <th>Create Date</th>
+                    <th>Complete</th>
+                    <th>Coupon ID</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody id="order-table-body"></tbody>
+            </table>
+            <div class="pagination" id="order-pagination"></div>
+            <div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-labelledby="orderDetailsModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="orderDetailsModalLabel">Order Details</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <table class="details-table">
+                                <thead>
+                                <tr>
+                                    <th>Order Detail ID</th>
+                                    <th>Product Image</th>
+                                    <th>Product Name</th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>User ID</th>
+                                    <th>Rating</th>
+                                    <th>Author</th>
+                                    <th>Discount</th>
+                                </tr>
+                                </thead>
+                                <tbody id="orderDetailsBody"></tbody>
+                            </table>
+                            <div class="order-summary mt-3">
+                                <p><strong>Total Amount:</strong> <span id="orderTotal">$0.00</span></p>
+                                <p><strong>Total Quantity:</strong> <span id="orderQuantity">0</span></p>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Manage Customers Section -->
+        <section class="manage-users" style="display: none;" id="manage-users-section">
+            <h2>Manage Customers</h2>
+            <div class="user-sections">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Address</th>
+                        <th>Joined Date</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody id="customer-body">
+                    <!-- Đổ dữ liệu từ JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Create Staff Modal -->
+        <div id="staff-modal" class="modal-overlay" style="display: none;">
+            <div class="modal-content1">
+                <span id="close-staff-modal" class="close">&times;</span>
+                <h4 class="mb-3">Create Staff Account</h4>
+                <form id="staff-form">
+                    <div class="form-group mb-2">
+                        <label>Email</label>
+                        <input name="email" type="email" class="form-control" required>
+                    </div>
+                    <div class="form-group mb-2">
+                        <label>Password</label>
+                        <input name="password" type="password" class="form-control" required>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label>Role</label>
+                        <select name="roleID" class="form-control" required>
+                            <option value="3">Warehouse Management</option>
+                            <option value="4">Customer Care</option>
+                            <option value="5">Shipper</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Create</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Manage Staffs Section -->
+        <section class="manage-staffs" style="display: none;" id="manage-staffs-section">
+            <h2>Manage Staffs</h2>
+            <button id="create-staff-btn" class="btn btn-sm btn-success" style="margin-bottom: 15px;">+ Create Staff</button>
+            <table>
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Role</th>
+                    <th>Joined Date</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody id="staff-body">
+                <!-- Đổ dữ liệu từ JS -->
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Edit Role Popup -->
+        <div id="edit-role-modal" class="modal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5);">
+            <div style="background:#fff; padding:20px; margin:15% auto; width:300px; border-radius:8px; position:relative;">
+                <h5>Edit Staff Role</h5>
+                <select id="role-select" style="width:100%; margin-top:10px;">
+                    <option value="3">Warehouse Management</option>
+                    <option value="4">Customer Care</option>
+                    <option value="5">Shipper</option>
+                </select>
+                <div style="margin-top:15px; text-align:right;">
+                    <button id="save-role-btn" class="btn btn-sm btn-primary">Save</button>
+                    <button id="cancel-role-btn" class="btn btn-sm btn-secondary">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Manage Discounts & Promotions Section -->
+        <section class="manage-discounts" style="display: none;" id="manage-discounts-section">
+            <h2>Manage Discounts & Promotions</h2>
+            <br>
+
+            <!-- Search bar -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="w-50">
+                    <input type="text" id="couponSearchInput" class="form-control" placeholder="Enter code to search">
+                </div>
+                <div>
+                    <!--                    <button class="btn btn-primary me-2" id="btnSearchCoupon">Search</button>-->
+                    <button id="addCouponBtn" class="btn btn-primary" onclick="openCreateCouponForm()"><i class="fa fa-plus"></i> Add Coupon</button>
+                </div>
+            </div>
+
+
+            <!-- Coupon Table -->
+            <table class="table table-bordered table-hover">
+                <thead class="thead-gray">
+                <tr>
+                    <th>ID</th>
+                    <th>Code</th>
+                    <th>Discount (%)</th>
+                    <th>Quantity</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody id="couponTableBody">
+                <!-- JS sẽ render dữ liệu vào đây -->
+                </tbody>
+            </table>
+            <ul class="pagination justify-content-center" id="couponPagination"></ul>
+        </section>
+
+        <!-- Modal Form Thêm/Sửa Coupon -->
+        <div class="modal fade" id="couponModal" tabindex="-1" aria-labelledby="couponModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form id="couponForm">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="couponModalLabel">Coupon Form</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+
+                        <div class="modal-body">
+                            <input type="hidden" id="couponId">
+
+                            <div class="mb-3">
+                                <label for="code" class="form-label">Code</label>
+                                <input type="text" id="code" class="form-control" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="discountPercent" class="form-label">Discount Percent (%)</label>
+                                <input type="number" id="discountPercent" class="form-control" required min="0" max="100" step="0.01">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="quantity" class="form-label">Quantity</label>
+                                <input type="number" id="quantity" class="form-control" required min="0" step="1">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="startDate" class="form-label">Start Date</label>
+                                <input type="date" id="startDate" class="form-control">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="endDate" class="form-label">End Date</label>
+                                <input type="date" id="endDate" class="form-control">
+                            </div>
+
+                            <div class="form-check mb-3">
+                                <input type="checkbox" class="form-check-input" id="isActive" checked>
+                                <label class="form-check-label" for="isActive">Active</label>
+                            </div>
+
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" id="btnSaveCoupon">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Manage Comments Section -->
+        <section class="manage-comments" style="display: none;" id="manage-comments-section">
+            <h2>Manage Comments</h2>
+            <table class="dataTable">
+                <thead>
+                <tr>
+                    <th>Comment ID</th>
+                    <th>User</th>
+                    <th>Book</th>
+                    <th>Content</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>#CM001</td>
+                    <td>John Doe</td>
+                    <td>The Universe Explained</td>
+                    <td>Great book!</td>
+                    <td>2025-06-01</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary">View</button>
+                        <button class="btn btn-sm btn-danger">Delete</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>#CM002</td>
+                    <td>Jane Smith</td>
+                    <td>The Mystery of Time</td>
+                    <td>Very interesting!</td>
+                    <td>2025-06-02</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary">View</button>
+                        <button class="btn btn-sm btn-danger">Delete</button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Settings Section -->
+        <section class="settings" style="display: none;" id="settings-section">
+            <h2>Settings</h2>
+            <form>
+                <div class="mb-3">
+                    <label for="site-name">Site Name</label>
+                    <input type="text" id="site-name" class="form-control" value="LibBook"/>
+                </div>
+                <div class="mb-3">
+                    <label for="admin-email">Admin Email</label>
+                    <input type="email" id="admin-email" class="form-control" value="admin@example.com"/>
+                </div>
+                <div class="mb-3">
+                    <label for="site-description">Site Description</label>
+                    <textarea id="site-description" class="form-control" rows="3">Online Bookstore</textarea>
+                </div>
+                <button type="submit" class="btn">Save Settings</button>
+            </form>
+        </section>
+    </main>
+</div>
+<script th:inline="javascript">
+    let userInSession = /*[[${session.USER}]]*/ null;
+    console.log("User object từ session:", userInSession);
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script src="/js/admin-user.js"></script>
+<script src="/js/coupon-management.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+</body>
+</html>

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Edit Book - LibBook</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .edit-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .edit-container h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+
+        .edit-container label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .edit-container input, .edit-container textarea, .edit-container select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .edit-container .form-control:disabled {
+            background-color: #e9ecef;
+            opacity: 1;
+        }
+
+        .edit-container button {
+            background-color: #2c3e50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .edit-container button:hover {
+            background-color: #34495e;
+        }
+
+        .preview-img {
+            max-width: 200px;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+<div class="edit-container">
+    <h2>Edit Book</h2>
+    <form th:action="@{/api/products/{id}(id=${product.productId})}" th:method="put" id="editBookForm"
+          enctype="multipart/form-data">
+        <input type="hidden" th:name="productId" th:value="${product.productId}"/>
+        <input type="hidden" th:name="userId" th:value="${product.userId}"/>
+        <input type="hidden" th:name="status" value="1"/>
+
+        <div class="mb-3">
+            <label for="productName">Book Name</label>
+            <input type="text" id="productName" th:name="productName" th:value="${product.productName}"
+                   class="form-control" required/>
+        </div>
+
+        <div class="mb-3">
+            <label for="author">Author</label>
+            <input type="text" id="author" th:name="author" th:value="${product.author ?: 'No Author'}"
+                   class="form-control"/>
+        </div>
+
+        <div class="mb-3">
+            <label for="publisher">Publisher</label>
+            <input type="text" id="publisher" th:name="publisher" th:value="${product.publisher ?: ''}"
+                   class="form-control"/>
+        </div>
+
+        <div class="mb-3">
+            <label for="description">Description</label>
+            <textarea id="description" th:name="description" th:text="${product.description}" class="form-control"
+                      rows="3" required></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="price">Price (VND)</label>
+            <input type="number" id="price" th:name="price" th:value="${product.price}" step="0.01" class="form-control"
+                   required/>
+        </div>
+
+        <div class="mb-3">
+            <label for="discount">Discount (%)</label>
+            <input type="number" id="discount" th:name="discount" th:value="${product.discount}" class="form-control"
+                   min="0" max="100" required/>
+        </div>
+
+        <div class="mb-3">
+            <label for="imageFile">Image File</label>
+            <input type="file" id="imageFile" name="imageFile" class="form-control" accept="image/*"/>
+            <input type="hidden" th:value="${product.imageFile}" name="imageFile-result">
+            <img th:src="${product.imageFile}" alt="Book Cover" id="preview-img" class="preview-img"
+                 style="display: ${product.imageFile ? 'block' : 'none'};"/>
+        </div>
+
+        <div class="mb-3">
+            <label for="buys">Buys</label>
+            <input type="number" id="buys" th:name="buys" th:value="${product.buys}" class="form-control" disabled/>
+            <input type="hidden" th:name="buys" th:value="${product.buys}"/>
+        </div>
+
+        <div class="mb-3">
+            <label for="available">Available</label>
+            <input type="number" id="available" th:name="available" th:value="${product.available}" class="form-control"
+                   required/>
+        </div>
+
+        <div class="mb-3">
+            <label for="rating">Rating</label>
+            <input type="number" id="rating" th:name="rating" th:value="${product.rating}" step="0.1"
+                   class="form-control" disabled/>
+            <input type="hidden" th:name="rating" th:value="${product.rating}"/>
+        </div>
+
+        <div class="mb-3">
+            <label for="tags">Tags</label>
+            <select id="tags" name="tags" class="form-control" multiple>
+            </select>
+        </div>
+
+        <button type="submit" class="btn">Save Changes</button>
+        <a th:href="@{${isAdmin} ? '/admin' : '/staff'}" class="btn btn-secondary ms-2">Cancel</a>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const select = $('#tags');
+        fetch('/api/Tag/')
+            .then(response => response.json())
+            .then(tags => {
+                select.select2({
+                    data: tags.map(tag => ({id: tag.tagId, text: tag.tagName})),
+                    placeholder: "Select tags...",
+                    allowClear: true
+                });
+                const currentTagIds = [/* Lấy từ backend, ví dụ: th:attr="data-tags=${product.tagIds}" */];
+                if (currentTagIds && currentTagIds.length > 0) {
+                    select.val(currentTagIds).trigger('change');
+                }
+            })
+            .catch(error => console.error('Error loading tags:', error));
+
+        function previewImage(event) {
+            const file = event.target.files[0];
+            const preview = document.getElementById('preview-img');
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        document.getElementById('imageFile').addEventListener('change', previewImage);
+
+        document.getElementById('editBookForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const tagIds = $('#tags').val() || [];
+            const url = this.action + '?tagIds=' + tagIds.join(',');
+            const fileInput = document.getElementById('imageFile');
+            const file = fileInput.files[0];
+            const discount = document.getElementById('discount').value;
+            const publisher = document.getElementById('publisher').value;
+
+            console.log('Publisher value:', publisher); // Log để kiểm tra giá trị publisher
+            formData.append('publisher', publisher); // Đảm bảo publisher được gửi
+
+            if (discount < 0 || discount > 100) {
+                alert('Discount must be between 0 and 100!');
+                return;
+            }
+
+            // Đặt status mặc định là 1
+            formData.append('status', '1');
+
+            const handleResponse = (response) => {
+                if (!response.ok) {
+                    throw new Error('Failed to update book');
+                }
+                alert('Book updated successfully!');
+                const currentPath = window.location.pathname;
+                if (currentPath.startsWith('/admin')) {
+                    window.location.href = '/admin';
+                } else if (currentPath.startsWith('/staff')) {
+                    window.location.href = '/staff';
+                }
+            };
+
+            const handleError = (error) => {
+                console.error('Error:', error);
+                alert('Failed to update book. Check the console for details.');
+            };
+
+            const sendRequest = () => {
+                console.log('FormData contents:');
+                for (let [key, value] of formData.entries()) {
+                    console.log(`${key}: ${value}`);
+                }
+                fetch(url, {
+                    method: 'PUT',
+                    body: formData
+                })
+                    .then(handleResponse)
+                    .catch(handleError);
+            };
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const base64String = event.target.result;
+                    formData.append('base64', base64String);
+                    sendRequest();
+                };
+                reader.readAsDataURL(file);
+            } else {
+                formData.append('base64', '');
+                sendRequest();
+            }
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${tagName} + ' - LibBook'">Category - LibBook</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="/css/home.css"/>
+    <link rel="shortcut icon"
+          href="https://rails-assets-us.bookshop.org/assets/favicon-63cb20989e2516343feeab429626798a43afdaa28eeaba777b7e0acde8a25dd2.png"/>
+    <style>
+        .category-products .book-card {
+            transition: transform 0.3s ease;
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .category-products .book-card img {
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .category-products .book-card .card-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+        }
+
+        .category-products .book-card .card-text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+    </style>
+</head>
+
+<body>
+<div th:insert="~{fragments/navbar :: navbar}"></div>
+
+<!-- Hero Section -->
+<section class="hero bg-light py-5 mt-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-3">
+                    Explore
+                    <span class="text-primary" th:text="${tagName}"></span> Books
+                </h1>
+                <p class="lead mb-4">Find the best books in your favorite category!</p>
+                <div class="search-form mb-4">
+                    <form th:action="@{/category/search}" method="get" class="bg-white p-4 rounded shadow-sm">
+                        <div class="row g-3">
+                            <div class="col-md-5">
+                                <input type="text" class="form-control" name="searchQuery" placeholder="Search by title or author"/>
+                            </div>
+                            <div class="col-md-4">
+                                <select class="form-select" name="selectedTag" id="categorySelect" onchange="redirectToCategory()">
+                                    <option value="" selected>All Categories</option>
+                                    <option th:each="tag : ${tags}" th:value="${tag.tagName}" th:text="${tag.tagName}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <button type="submit" class="btn btn-primary w-100">Search</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <img src="https://images.unsplash.com/photo-1507842217343-583bb7270b66" alt="Books"
+                     class="img-fluid rounded shadow"/>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Category Products Section -->
+<section class="category-products py-5">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/home}">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page" th:text="${tagName}"></li>
+            </ol>
+        </nav>
+
+        <h2 class="mb-4" th:text="${tagName} + ' Books'"></h2>
+
+        <div th:if="${products == null or products.isEmpty()}">
+            <p class="text-center text-muted">No products available for this category.</p>
+        </div>
+
+        <div th:unless="${products == null or products.isEmpty()}" class="row g-4">
+            <div class="col-lg-3 col-md-6" th:each="product : ${products}">
+                <div class="book-card bg-white rounded shadow-sm">
+                    <img th:src="${product.imageFile.startsWith('http') ? product.imageFile : '/images/' + product.imageFile}"
+                         class="card-img-top" alt="Book Cover"/>
+                    <div class="card-body">
+                        <p class="text-primary mb-1">Book</p>
+                        <h5 class="card-title" th:text="${product.productName}"></h5>
+                        <p class="card-text text-muted" th:text="${product.description}"></p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="h5 mb-0" th:text="${product.price}+' VND'"></span>
+                            <a th:href="@{/product/{id}(id=${product.productId})}"
+                               class="btn btn-outline-primary">View Details</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div th:insert="~{fragments/footer :: footer}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/components.js"></script>
+<script>
+    function redirectToCategory() {
+        var select = document.getElementById('categorySelect');
+        var selectedTag = select.value;
+        if (selectedTag) {
+            window.location.href = '/category/' + encodeURIComponent(selectedTag);
+        }
+    }
+</script>
+</body>
+</html>

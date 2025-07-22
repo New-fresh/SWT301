@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <body>
+    <div th:fragment="shipping-form">
+      <div class="shipping-form-container">
+        <h3>Thông tin giao hàng</h3>
+        <form id="shippingForm" class="shipping-form" onsubmit="confirmOrder(event)">
+          <div class="form-group">
+            <label for="fullName">Họ và tên *</label>
+            <input type="text" id="fullName" name="fullName" required />
+          </div>
+
+          <div class="form-group">
+            <label for="phone">Số điện thoại *</label>
+            <input type="tel" id="phone" name="phone" required />
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email *</label>
+            <input type="email" id="email" name="email" required />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="province">Tỉnh/Thành phố *</label>
+              <select id="province" name="province" required>
+                <option value="">Chọn tỉnh/thành phố</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="district">Quận/Huyện *</label>
+              <select id="district" name="district" required disabled>
+                <option value="">Chọn quận/huyện</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="address">Địa chỉ cụ thể *</label>
+            <textarea
+              id="address"
+              name="address"
+              rows="3"
+              required
+              placeholder="Số nhà, tên đường, phường/xã"></textarea>
+          </div>
+
+          <div class="shipping-options">
+            <h4>Phương thức giao hàng</h4>
+            <div class="shipping-option">
+              <input type="radio" id="standard" name="shippingMethod" value="standard" checked />
+              <label for="standard">
+                <div class="option-info">
+                  <span class="option-name">Giao hàng tiêu chuẩn</span>
+                  <span class="option-time">3-5 ngày làm việc</span>
+                </div>
+                <span class="option-price">30.000 VNĐ</span>
+              </label>
+            </div>
+
+            <div class="shipping-option">
+              <input type="radio" id="express" name="shippingMethod" value="express" />
+              <label for="express">
+                <div class="option-info">
+                  <span class="option-name">Giao hàng nhanh</span>
+                  <span class="option-time">1-2 ngày làm việc</span>
+                </div>
+                <span class="option-price">60.000 VNĐ</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="note">Ghi chú giao hàng</label>
+            <textarea
+              id="note"
+              name="note"
+              rows="2"
+              placeholder="Ghi chú đặc biệt cho người giao hàng (tùy chọn)"></textarea>
+          </div>
+
+          <div class="form-actions">
+            <div class="form-actions">
+              <button type="button" class="btn btn-secondary" onclick="backToSummary()">
+                <i class="ri-arrow-left-line"></i>
+                Quay lại
+              </button>
+              <button type="submit" class="btn btn-primary">
+                <i class="ri-secure-payment-line"></i>
+                Xác nhận đặt hàng
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>

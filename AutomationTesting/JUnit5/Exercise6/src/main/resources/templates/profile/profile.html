@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hồ Sơ Cá Nhân - LibBook</title>
+
+    <link rel="stylesheet" href="/css/ProfileUser.css" />
+    <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+            rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+</head>
+<body>
+<!-- Include Navbar -->
+<div class="container">
+    <!-- Main Content -->
+    <main class="main">
+        <a href="/" >
+            <button class="btn btn-primary position-absolute top-0 start-0 m-3">
+                Home
+            </button>
+        </a>
+
+
+        <!-- Profile Header -->
+        <section class="profile-header">
+            <div class="profile-avatar">
+                <img
+                        th:src="${userProfile.getProfilePicture()}"
+                        alt="Avatar"
+                        id="avatarImage"
+                        onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNDAiIHI9IjE1IiBmaWxsPSIjOUNBM0FGIi8+CjxwYXRoIGQ9Ik0yMCA4MEM0MCA2MCA2MCA2MCA4MCA4MEgyMFoiIGZpbGw9IiM5Q0EzQUYiLz4KPC9zdmc+'" />
+                <div class="avatar-upload"  th:if="${userProfile.userId} == ${session.USER.userId}">
+                    <input type="file" id="avatarInput" accept="image/*" style="display: none" />
+                    <button type="button" class="upload-btn" onclick="document.getElementById('avatarInput').click()">
+                        <i class="fas fa-camera"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="profile-info">
+                <h1 class="profile-name" id="firstname"
+                    th:text="${userProfile.firstName != null || userProfile.lastName != null} ? ${userProfile.firstName + ' ' + userProfile.lastName} : ''">
+                </h1>
+
+                <h5 class="profile-name" id="userName" th:text="${userProfile.userName}"></h5>
+
+
+
+                <p class="profile-email" id="userEmail" th:text="${userProfile.email}"></p>
+                <div class="profile-stats">
+                    <div class="stat">
+
+                        <span class="stat-number" id="totalBooks" th:text="${userProfile.productPurchased}"></span>
+                        <span class="stat-label">Purchased book</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number" id="totalSpent" th:text="${userProfile.totalSpent}"></span>
+                        <span class="stat-label">Tổng chi tiêu</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Navigation Tabs -->
+        <nav class="profile-nav">
+            <button class="tab-btn active" data-tab="personal">Profile details</button>
+            <button class="tab-btn" data-tab="orders">Orders</button>
+            <button class="tab-btn" data-tab="reviews">Rates</button>
+            <button  class="tab-btn" data-tab="settings" th:if="${userProfile.userId} == ${session.USER.userId}" >Setting</button>
+        </nav>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+            <!-- Personal Information Tab -->
+            <div class="tab-pane active" id="personal">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>User information</h2>
+                        <button type="button" th:if="${userProfile.userId} == ${session.USER.userId}" class="edit-btn" id="editPersonalBtn">
+                            <i class="fas fa-edit"></i>
+                            Edit
+                        </button>
+                    </div>
+                    <form class="profile-form" action="/profile/update" method="POST" id="personalForm">
+                        <input type="hidden" name="userId" id="userId" th:value="${userProfile.userId}" />
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="firstname">First Name</label>
+                                <input type="text" id="" name="firstName" th:value="${userProfile.firstName}" readonly />
+                            </div>
+                            <div class="form-group">
+                                <label for="lastname">Last Name</label>
+                                <input type="text" id="lastname" name="lastName" th:value="${userProfile.lastName}" readonly />
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" name="email" th:value="${userProfile.email}" readonly />
+                            </div>
+                            <div class="form-group">
+                                <label for="phone">Phone number</label>
+                                <input type="tel" id="phone" name="phoneNumber" th:value="${userProfile.phoneNumber}" readonly />
+                            </div>
+                            <div class="form-group">
+                                <label for="birthDate">Date of birth</label>
+                                <input type="date" id="birthDate" name="dateOfBirth" th:value="${userProfile.dateOfBirth}" readonly />
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="address">Address</label>
+                                <textarea id="address" name="address" rows="3" th:text="${userProfile.address}" readonly></textarea>
+                            </div>
+                        </div>
+                        <div class="form-actions" style="display: none" id="personalActions">
+                            <button type="submit" class="btn btn-primary">Confirm</button>
+                            <button type="button" class="btn btn-secondary" id="cancelPersonalBtn">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Orders Tab -->
+            <div class="tab-pane" id="orders">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Lịch sử đơn hàng</h2>
+                        <div class="filter-group">
+                            <select class="filter-select" id="orderStatus">
+                                <option value="">Tất cả trạng thái</option>
+                                <option value="pending">Chờ xử lý</option>
+                                <option value="processing">Đang xử lý</option>
+                                <option value="shipped">Đã gửi</option>
+                                <option value="delivered">Đã giao</option>
+                                <option value="cancelled">Đã hủy</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="orders-list" id="ordersList">
+                        <!-- Orders will be loaded via AJAX -->
+                        <div class="order-item" data-order-id="${order.id}">
+                            <div class="order-header">
+                                <div class="order-info">
+                                    <span class="order-id">#${order.id}</span>
+                                    <span class="order-date">${order.createdDate}</span>
+                                </div>
+                                <span class="order-status status-${order.status}">${order.statusText}</span>
+                            </div>
+                            <div class="order-items">
+                                <!-- Loop through order items -->
+                                <div class="order-book">
+                                    <img src="${book.imageUrl}" alt="${book.title}" class="book-thumb" />
+                                    <div class="book-info">
+                                        <h4>${book.title}</h4>
+                                        <p>Tác giả: ${book.author}</p>
+                                        <p>Số lượng: ${orderItem.quantity}</p>
+                                    </div>
+                                    <div class="book-price">${orderItem.price} VNĐ</div>
+                                </div>
+                            </div>
+                            <div class="order-footer">
+                                <div class="order-total">Tổng: ${order.totalAmount} VNĐ</div>
+                                <div class="order-actions">
+                                    <a href="/orders/${order.id}" class="btn btn-outline">Xem chi tiết</a>
+                                    <button type="button" class="btn btn-outline" onclick="reorderItems(${order.id})">Mua lại</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wishlist Tab -->
+            <div class="tab-pane" id="wishlist">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Sách yêu thích</h2>
+                        <span class="item-count" id="wishlistCount">${wishlistCount} sách</span>
+                    </div>
+                    <div class="wishlist-grid" id="wishlistGrid">
+                        <!-- Wishlist items will be loaded via AJAX -->
+                        <div class="book-card" data-book-id="${book.id}">
+                            <div class="book-image">
+                                <img src="${book.imageUrl}" alt="${book.title}" />
+                                <button class="remove-wishlist" onclick="removeFromWishlist(${book.id})">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                            <div class="book-details">
+                                <h3>${book.title}</h3>
+                                <p class="book-author">${book.author}</p>
+                                <div class="book-rating">
+                                    <div class="stars">
+                                        <!-- Generate stars based on rating -->
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="far fa-star"></i>
+                                    </div>
+                                    <span>(${book.reviewCount})</span>
+                                </div>
+                                <div class="book-price">
+                                    <span class="current-price">${book.price} VNĐ</span>
+                                    <span class="original-price">${book.originalPrice} VNĐ</span>
+                                </div>
+                                <button class="btn btn-primary" onclick="addToCart(${book.id})">
+                                    <i class="fas fa-shopping-cart"></i>
+                                    Thêm vào giỏ
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reviews Tab -->
+            <div class="tab-pane" id="reviews">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Đánh giá của tôi</h2>
+                        <span class="item-count" id="reviewCount">${reviewCount} đánh giá</span>
+                    </div>
+                    <div class="reviews-list" id="reviewsList">
+                        <!-- Reviews will be loaded via AJAX -->
+                        <div class="review-item" data-review-id="${review.id}">
+                            <div class="review-book">
+                                <img src="${review.book.imageUrl}" alt="${review.book.title}" class="book-thumb" />
+                                <div class="book-info">
+                                    <h4>${review.book.title}</h4>
+                                    <p>${review.book.author}</p>
+                                </div>
+                            </div>
+                            <div class="review-content">
+                                <div class="review-header">
+                                    <div class="review-rating">
+                                        <!-- Generate stars -->
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="far fa-star"></i>
+                                    </div>
+                                    <span class="review-date">${review.createdDate}</span>
+                                </div>
+                                <p class="review-text">${review.content}</p>
+                                <div class="review-actions">
+                                    <button class="btn btn-outline btn-sm" onclick="editReview(${review.id})">
+                                        <i class="fas fa-edit"></i>
+                                        Chỉnh sửa
+                                    </button>
+                                    <button class="btn btn-outline btn-sm" onclick="deleteReview(${review.id})">
+                                        <i class="fas fa-trash"></i>
+                                        Xóa
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div class="tab-pane" id="settings">
+                <div class="settings-grid">
+
+                    <!-- Notification Subscription -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Thông báo</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="subscribeSwitch">Nhận thông báo sản phẩm mới</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="subscribeSwitch"
+                                           th:checked="${userProfile.isSubscribed}"
+                                           onchange="updateSubscription(this.checked)" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Password Change -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Đổi mật khẩu</h2>
+                        </div>
+                        <form class="settings-form" action="/change-password" method="POST" id="passwordForm">
+                            <input type="hidden" name="email" th:value="${userProfile.getEmail()}" />
+                            <input type="hidden" name="userId" th:value="${userProfile.getUserId()}" />
+
+                            <div class="form-group">
+                                <label for="currentPassword">Current Password</label>
+                                <input type="password" id="currentPassword" name="currentPassword" required />
+                            </div>
+                            <div class="form-group">
+                                <label for="newPassword">New Password</label>
+                                <input type="password" id="newPassword" name="newPassword" required />
+                            </div>
+                            <div class="form-group">
+                                <label for="confirmPassword">Confirm New Password</label>
+                                <input type="password" id="confirmPassword" name="confirmPassword" required />
+                            </div>
+                            <button type="submit" class="btn btn-primary">Đổi mật khẩu</button>
+                        </form>
+                    </div>
+
+<!--                    &lt;!&ndash; Notification Settings &ndash;&gt;-->
+<!--                    <div class="card">-->
+<!--                        <div class="card-header">-->
+<!--                            <h2>Cài đặt thông báo</h2>-->
+<!--                        </div>-->
+<!--                        <form class="settings-form" action="/profile/notification-settings" method="POST" id="notificationForm">-->
+<!--                            <input type="hidden" name="userId" value="${user.id}" />-->
+<!--                            <div class="setting-item">-->
+<!--                                <label class="switch">-->
+<!--                                    <input type="checkbox" name="emailNotifications" ${user.emailNotifications ? 'checked' : ''}>-->
+<!--                                    <span class="slider"></span>-->
+<!--                                </label>-->
+<!--                                <div class="setting-info">-->
+<!--                                    <h4>Thông báo email</h4>-->
+<!--                                    <p>Nhận thông báo về đơn hàng và khuyến mãi qua email</p>-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                            <div class="setting-item">-->
+<!--                                <label class="switch">-->
+<!--                                    <input type="checkbox" name="smsNotifications" ${user.smsNotifications ? 'checked' : ''}>-->
+<!--                                    <span class="slider"></span>-->
+<!--                                </label>-->
+<!--                                <div class="setting-info">-->
+<!--                                    <h4>Thông báo SMS</h4>-->
+<!--                                    <p>Nhận thông báo về trạng thái đơn hàng qua SMS</p>-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                            <div class="setting-item">-->
+<!--                                <label class="switch">-->
+<!--                                    <input type="checkbox" name="promotionNotifications" ${user.promotionNotifications ? 'checked' :-->
+<!--                                    ''}>-->
+<!--                                    <span class="slider"></span>-->
+<!--                                </label>-->
+<!--                                <div class="setting-info">-->
+<!--                                    <h4>Thông báo khuyến mãi</h4>-->
+<!--                                    <p>Nhận thông tin về các chương trình khuyến mãi mới</p>-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                            <button type="submit" class="btn btn-primary">Lưu cài đặt</button>-->
+<!--                        </form>-->
+<!--                    </div>-->
+
+<!--                    &lt;!&ndash; Privacy Settings &ndash;&gt;-->
+<!--                    <div class="card">-->
+<!--                        <div class="card-header">-->
+<!--                            <h2>Quyền riêng tư</h2>-->
+<!--                        </div>-->
+<!--                        <form class="settings-form" action="/profile/privacy-settings" method="POST" id="privacyForm">-->
+<!--                            <input type="hidden" name="userId" value="${user.id}" />-->
+<!--                            <div class="setting-item">-->
+<!--                                <label class="switch">-->
+<!--                                    <input type="checkbox" name="profilePublic" ${user.profilePublic ? 'checked' : ''}>-->
+<!--                                    <span class="slider"></span>-->
+<!--                                </label>-->
+<!--                                <div class="setting-info">-->
+<!--                                    <h4>Hồ sơ công khai</h4>-->
+<!--                                    <p>Cho phép người khác xem hồ sơ và đánh giá của bạn</p>-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                            <div class="setting-item">-->
+<!--                                <label class="switch">-->
+<!--                                    <input type="checkbox" name="showPurchaseHistory" ${user.showPurchaseHistory ? 'checked' : ''}>-->
+<!--                                    <span class="slider"></span>-->
+<!--                                </label>-->
+<!--                                <div class="setting-info">-->
+<!--                                    <h4>Hiển thị lịch sử mua hàng</h4>-->
+<!--                                    <p>Cho phép hiển thị các sách bạn đã mua trong hồ sơ</p>-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                            <button type="submit" class="btn btn-primary">Lưu cài đặt</button>-->
+<!--                        </form>-->
+<!--                    </div>-->
+
+<!--                    &lt;!&ndash; Account Actions &ndash;&gt;-->
+<!--                    <div class="card">-->
+<!--                        <div class="card-header">-->
+<!--                            <h2>Tài khoản</h2>-->
+<!--                        </div>-->
+<!--                        <div class="account-actions">-->
+<!--                            <button type="button" class="btn btn-outline" onclick="exportData()">-->
+<!--                                <i class="fas fa-download"></i>-->
+<!--                                Xuất dữ liệu-->
+<!--                            </button>-->
+<!--                            <button type="button" class="btn btn-danger" onclick="deleteAccount()">-->
+<!--                                <i class="fas fa-trash"></i>-->
+<!--                                Xóa tài khoản-->
+<!--                            </button>-->
+<!--                        </div>-->
+<!--                    </div>-->
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+</div>
+
+<!-- Toast Notifications -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="/js/profile.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script th:if="${error}" th:inline="javascript">
+    document.addEventListener("DOMContentLoaded", function () {
+        console.log("Hello")
+        setTimeout(function () {
+            Swal.fire({
+                icon: 'info',
+                title: [[${error}]],
+                confirmButtonText: 'OK'
+            });
+        }, 500);
+    });
+</script>
+
+</body>
+</html>

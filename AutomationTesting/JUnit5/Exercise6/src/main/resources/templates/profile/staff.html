@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Staff Panel - LibBook</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --background-light: #f4f4f9;
+            --card-bg: #ffffff;
+            --text-dark: #2c3e50;
+            --text-light: #7f8c8d;
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            --hover-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #f4f4f9 0%, #e0e7ff 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            color: #fff;
+            padding: 20px;
+            box-shadow: 2px 0 15px rgba(0, 0, 0, 0.2);
+            position: fixed;
+            height: 100vh;
+            transition: width 0.3s ease;
+        }
+
+        .sidebar h2 {
+            font-size: 1.6rem;
+            margin-bottom: 30px;
+            text-align: center;
+            color: #ecf0f1;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .sidebar ul li {
+            padding: 15px 20px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            margin-bottom: 5px;
+        }
+
+        .sidebar ul li:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #3498db;
+            transform: translateX(5px);
+        }
+
+        .sidebar ul li.active {
+            font-weight: bold;
+            background: rgba(52, 73, 94, 0.8);
+            color: #fff;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px 30px;
+            background-color: transparent;
+            margin-left: 250px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(90deg, #ecf0f1 0%, #fff 100%);
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 25px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .topbar h1 {
+            font-size: 1.9rem;
+            margin: 0;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .staff-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .staff-info img {
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            border:  2px solid #3498db;
+            transition: transform 0.3s ease;
+        }
+
+        .staff-info img:hover {
+            transform: scale(1.1);
+        }
+
+        .staff-info span {
+            font-size: 1.1rem;
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+
+        .overview {
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: linear-gradient(145deg, #ffffff 0%, #f9f9f9 100%);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--hover-shadow);
+        }
+
+        .card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 12px;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .card p {
+            font-size: 1.6rem;
+            color: var(--text-light);
+            font-weight: 700;
+            transition: color 0.3s ease;
+        }
+
+        .card:hover p {
+            color: var(--secondary-color);
+        }
+
+        .recent-books table, .orders-table table, .manage-ratings table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: #fff;
+            box-shadow: var(--shadow);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .recent-books th, .recent-books td, .orders-table th, .orders-table td, .manage-ratings th, .manage-ratings td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+            transition: background 0.3s ease;
+        }
+
+        .recent-books th, .orders-table th, .manage-ratings th {
+            background: var(--primary-color);
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .recent-books td:hover, .manage-ratings td:hover {
+            background: #f8f9fa;
+        }
+
+        .recent-books img {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .recent-books img:hover {
+            transform: scale(1.1);
+        }
+
+        .pagination {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .pagination button {
+            padding: 8px 15px;
+            border: none;
+            background: var(--secondary-color);
+            color: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .pagination button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .profile-section, .upload-section, .orders-table, .manage-ratings {
+            background: linear-gradient(145deg, #ffffff 0%, #f9f9f9 100%);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .profile-section h2, .upload-section h2, .orders-table h2, .manage-ratings h2 {
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 5px;
+        }
+
+        .profile-section label, .upload-section label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-dark);
+        }
+
+        .profile-section input, .upload-section input, .upload-section textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .profile-section input:focus, .upload-section input:focus, .upload-section textarea:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+            outline: none;
+        }
+
+        .profile-section button, .upload-section button, .manage-ratings button {
+            background: linear-gradient(90deg, #3498db 0%, #2980b9 100%);
+            color: #fff;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .profile-section button:hover, .uploadzelfde
+
+        .profile-section button:hover, .upload-section button:hover, .manage-ratings button:hover {
+            background: linear-gradient(90deg, #2980b9 0%, #1e6b9f 100%);
+            transform: translateY(-2px);
+            box-shadow: var(--hover-shadow);
+        }
+
+        .upload-form {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+
+        .book-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .book-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--hover-shadow);
+        }
+
+        .book-card img {
+            height: 250px;
+            object-fit: cover;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+            transition: opacity 0.3s ease;
+        }
+
+        .book-card img:hover {
+            opacity: 0.9;
+        }
+
+        .book-tag {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 8px;
+            background: #ecf0f1;
+            padding: 4px 10px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+
+        .book-author {
+            font-style: italic;
+            color: #888;
+            font-size: 0.95rem;
+        }
+
+        .search-sort-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .search-sort-container input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-sort-container input:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+            outline: none;
+        }
+
+        .search-sort-container select {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fff;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-sort-container select:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+            outline: none;
+        }
+
+        .status-select {
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.375rem;
+            border: 1px solid #ced4da;
+            background-color: #ffffff;
+            font-size: 0.875rem;
+            transition: border-color 0.2s ease;
+        }
+
+        .status-select:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+
+        .btn-update {
+            background-color: #0d6efd;
+            color: #ffffff;
+            border: none;
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+            margin-left: 0.5rem;
+        }
+
+        .btn-update:hover {
+            background-color: #0b5ed7;
+        }
+
+        .btn-update:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .status-active {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-inactive {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 200px;
+            }
+
+            .main-content {
+                margin-left: 200px;
+            }
+
+            .overview {
+                grid-template-columns: 1fr;
+            }
+
+            .card {
+                margin-bottom: 15px;
+            }
+
+            .topbar {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+            }
+
+            .search-sort-container {
+                flex-direction: column;
+            }
+
+            .search-sort-container input,
+            .search-sort-container select {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard-container">
+    <aside class="sidebar">
+        <h2>👩‍💼 Staff Panel</h2>
+        <nav>
+            <ul>
+                <li data-section="overview-section">📊 Overview</li>
+                <li data-section="manage-books-section">📦 Manage Books</li>
+                <li data-section="manage-ratings-section">💬 Manage Ratings</li>
+                <li data-section="manage-profile-section">👤 Manage Profile</li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <h1>Staff Dashboard</h1>
+            <div class="staff-info">
+                <span th:if="${session.USER != null}" th:text="'Hello ' + ${session.USER.userName}"></span>
+                <img th:if="${session.USER != null}" th:src="${session.USER.profilePicture}" alt="Avatar"/>
+            </div>
+        </header>
+
+        <section class="overview" id="overview-section">
+            <div style="display: flex; justify-content: space-between">
+                <div class="card" style="width: 50%">
+                    <h3>Books Added</h3>
+                    <p id="books-added">0</p>
+                </div>
+                <div class="card" style="width: 50%">
+                    <h3>Profile Status</h3>
+                    <p id="profile-status">Updated</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="recent-books" id="manage-books-section">
+            <h2>Manage Books</h2>
+            <div class="search-sort-container">
+                <input type="text" id="searchInput" placeholder="Search by book name or author..."/>
+                <select id="sortSelect">
+                    <option value="name-asc">Name (A-Z)</option>
+                    <option value="name-desc">Name (Z-A)</option>
+                    <option value="price-asc">Price (Low to High)</option>
+                    <option value="price-desc">Price (High to Low)</option>
+                </select>
+                <button id="goToUploadButton" class="btn btn-primary">Add New Book</button>
+            </div>
+            <table>
+                <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Book Name</th>
+                    <th>Author</th>
+                    <th>Publisher</th>
+                    <th>Price</th>
+                    <th>Discount</th>
+                    <th>Updated Date</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody id="book-table-body">
+                </tbody>
+            </table>
+            <div class="pagination" id="pagination"></div>
+        </section>
+
+        <section class="manage-ratings" id="manage-ratings-section">
+            <h2>Manage Ratings</h2>
+            <div class="search-sort-container">
+                <input type="text" id="ratingSearchInput" placeholder="Search by rating ID, user name, or content..."/>
+                <select id="ratingSortSelect">
+                    <option value="id-asc">Rating ID (Asc)</option>
+                    <option value="id-desc">Rating ID (Desc)</option>
+                    <option value="stars-asc">Stars (Low to High)</option>
+                    <option value="stars-desc">Stars (High to Low)</option>
+                    <option value="date-asc">Created Date (Oldest First)</option>
+                    <option value="date-desc">Created Date (Newest First)</option>
+                    <option value="username-asc">User Name (A-Z)</option>
+                    <option value="username-desc">User Name (Z-A)</option>
+                </select>
+            </div>
+            <table>
+                <thead>
+                <tr>
+                    <th>Rating ID</th>
+                    <th>Product Name</th>
+                    <th>User Name</th>
+                    <th>Stars</th>
+                    <th>Created Date</th>
+                    <th>Content</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody id="rating-table-body">
+                </tbody>
+            </table>
+            <div class="pagination" id="rating-pagination"></div>
+        </section>
+
+        <section class="profile-section" id="manage-profile-section">
+            <h2>Manage Profile</h2>
+            <form>
+                <label for="staff-name">Staff Name</label>
+                <input type="text" id="staff-name" th:value="${staffName ?: 'Staff'}"/>
+
+                <label for="staff-email">Email</label>
+                <input type="email" id="staff-email" th:value="${staffEmail ?: 'email@example.com'}"/>
+
+                <label for="staff-phone">Phone Number</label>
+                <input type="text" id="staff-phone" th:value="${staffPhone ?: '0123456789'}"/>
+
+                <button type="submit">Update</button>
+            </form>
+        </section>
+
+        <section class="upload-section" id="upload-book-section">
+            <div th:replace="~{fragments/upload-book :: uploadBookFragment}"></div>
+        </section>
+
+        <section class="orders-table" id="view-orders-section">
+            <h2>View Orders</h2>
+            <table>
+                <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer Name</th>
+                    <th>Book Name</th>
+                    <th>Price</th>
+                    <th>Address</th>
+                    <th>Order Date</th>
+                    <th>Status</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>#001</td>
+                    <td>John Doe</td>
+                    <td>The Universe Explained</td>
+                    <td>$25.99</td>
+                    <td>123 FPTU, Hoa Hai, Ngu Hanh Son, Da Nang</td>
+                    <td>2025-06-01</td>
+                    <td><span class="badge bg-success">Delivered</span></td>
+                </tr>
+                <tr>
+                    <td>#002</td>
+                    <td>Jane Smith</td>
+                    <td>The Mystery of Time</td>
+                    <td>$15.99</td>
+                    <td>123 FPTU, Khu CNC Hoa Lac, Ha Noi</td>
+                    <td>2025-06-02</td>
+                    <td><span class="badge bg-warning">Pending</span></td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+</div>
+
+<div class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="statusToast" class="toast bg-success text-white" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <strong class="me-auto">Notification</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            Rating status updated successfully!
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    const books = [];
+    const sidebarItems = document.querySelectorAll('.sidebar ul li');
+    const sections = document.querySelectorAll('.main-content section');
+    let activeSectionIndex = -1;
+    let originalAllBooks = [];
+    let allBooks = [];
+    let originalAllRatings = [];
+    let allRatings = [];
+    const itemsPerPage = 10;
+    let currentPage = 1;
+    let currentRatingPage = 1;
+
+    function debounce(func, wait) {
+        let timeout;
+        return function (...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        sections.forEach(section => section.style.display = 'none');
+        document.getElementById('overview-section').style.display = 'block';
+        fetchBooks();
+        document.getElementById('goToUploadButton').addEventListener('click', () => {
+            sidebarItems.forEach(li => li.classList.remove('active'));
+            sections.forEach(section => section.style.display = 'none');
+            const uploadSection = document.getElementById('upload-book-section');
+            if (uploadSection) {
+                uploadSection.style.display = 'block';
+                const uploadItem = document.querySelector('[data-section="upload-book-section"]');
+                if (uploadItem) uploadItem.classList.add('active');
+                initializeUploadForm();
+            }
+            activeSectionIndex = Array.from(sidebarItems).findIndex(item => item.getAttribute('data-section') === 'upload-book-section');
+        });
+
+        document.getElementById('searchInput').addEventListener('input', debounce(() => {
+            console.log('Search input changed:', document.getElementById('searchInput').value);
+            applyFiltersAndSort();
+            currentPage = 1;
+            renderPagination();
+        }, 300));
+
+        document.getElementById('sortSelect').addEventListener('change', () => {
+            applyFiltersAndSort();
+            currentPage = 1;
+            renderPagination();
+        });
+
+        document.getElementById('ratingSearchInput')?.addEventListener('input', debounce(() => {
+            applyRatingFiltersAndSort();
+            currentRatingPage = 1;
+            renderRatingPagination();
+        }, 300));
+
+        document.getElementById('ratingSortSelect')?.addEventListener('change', () => {
+            applyRatingFiltersAndSort();
+            currentRatingPage = 1;
+            renderRatingPagination();
+        });
+    });
+
+    sidebarItems.forEach((item, index) => {
+        item.addEventListener('click', () => {
+            const sectionId = item.getAttribute('data-section');
+            const currentSection = document.getElementById(sectionId);
+
+            if (activeSectionIndex === index && currentSection.style.display === 'block') {
+                return;
+            }
+
+            sidebarItems.forEach(li => li.classList.remove('active'));
+
+            sections.forEach(section => section.style.display = 'none');
+
+            if (currentSection) {
+                currentSection.style.display = 'block';
+                item.classList.add('active');
+
+                if (sectionId === 'manage-books-section') {
+                    fetchBooks();
+                } else if (sectionId === 'upload-book-section') {
+                    initializeUploadForm();
+                } else if (sectionId === 'manage-ratings-section') {
+                    fetchRatings();
+                }
+            }
+
+            activeSectionIndex = index;
+        });
+    });
+
+    function initializeUploadForm() {
+        const select = $('#tags');
+        if (select.data('select2')) {
+            select.select2('destroy');
+        }
+        fetch('http://localhost:8080/api/Tag/')
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(tags => {
+                select.select2({
+                    data: tags.map(tag => ({id: tag.tagId, text: tag.tagName})),
+                    placeholder: "Select tags...",
+                    allowClear: true
+                });
+                console.log('Tags loaded:', tags);
+            })
+            .catch(error => {
+                console.error('Error fetching tags:', error);
+                alert('Failed to load tags. Check console for details.');
+            });
+    }
+
+    document.getElementById('uploadBookForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const name = document.getElementById('name').value;
+        const description = document.getElementById('description').value;
+        const price = parseFloat(document.getElementById('price').value);
+        const available = parseInt(document.getElementById('available').value);
+        const author = document.getElementById('author').value;
+        let publisher = document.getElementById('publisher').value.trim();
+        const discount = parseInt(document.getElementById('discount').value) || 0;
+        const tagIds = $('#tags').val() || [];
+        const imgInput = document.getElementById('img');
+        const file = imgInput.files[0];
+
+        if (!file) {
+            alert('Please select an image file!');
+            return;
+        }
+
+        if (!tagIds || tagIds.length === 0) {
+            alert('Please select at least one tag!');
+            return;
+        }
+
+        if (isNaN(available) || available < 0) {
+            alert('Please enter a valid quantity for Available!');
+            return;
+        }
+
+        if (discount < 0 || discount > 100) {
+            alert('Discount must be between 0 and 100!');
+            return;
+        }
+
+        const publishers = publisher.split(',').map(p => p.trim()).filter(p => p.length > 0);
+        const uniquePublishers = [...new Set(publishers)].join(',');
+        console.log('Cleaned publisher:', uniquePublishers);
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const imgDataUrl = e.target.result;
+
+            const newBook = {
+                productName: name,
+                description: description,
+                price: price,
+                available: available,
+                author: author,
+                publisher: uniquePublishers,
+                discount: discount,
+                imageFile: imgDataUrl,
+                status: 1,
+                buys: 0,
+                userId: 2,
+                rating: 0.0
+            };
+
+            console.log('New Book Data:', newBook);
+
+            fetch('http://localhost:8080/api/products?tagIds=' + (tagIds ? tagIds.join(',') : ''), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(newBook)
+            })
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to upload book');
+                    return response.json();
+                })
+                .then(data => {
+                    books.push({...newBook, img: imgDataUrl, tag: tagIds.map(id => id).join(', ')});
+                    fetchBooks();
+                    document.getElementById('uploadBookForm').reset();
+                    $('#tags').val(null).trigger('change');
+                    alert('Book uploaded successfully!');
+                })
+                .catch(error => {
+                    console.error('Error uploading book:', error);
+                    alert('Failed to upload book. Check console for details.');
+                });
+        };
+        reader.readAsDataURL(file);
+    });
+
+    document.getElementById('cancel-upload-btn').addEventListener('click', function () {
+        document.getElementById('uploadBookForm').reset();
+        $('#tags').val(null).trigger('change');
+    });
+
+    function fetchBooks() {
+        fetch('http://localhost:8080/api/products')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Fetched books:', data);
+                originalAllBooks = data.filter(book => book.status === 1);
+                allBooks = [...originalAllBooks];
+                applyFiltersAndSort();
+                renderPagination();
+                document.getElementById('books-added').textContent = allBooks.length;
+            })
+            .catch(error => { 
+                console.error('There was a problem with the fetch operation:', error);
+                alert('Failed to load books. Check the console for details.');
+            });
+    }
+
+    function renderTable() {
+        const tableBody = document.getElementById('book-table-body');
+        tableBody.innerHTML = '';
+        console.log('Rendering table with books:', allBooks);
+
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const paginatedBooks = allBooks.slice(startIndex, endIndex);
+        console.log('Paginated books:', paginatedBooks);
+
+        if (paginatedBooks.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No books found.</td></tr>';
+        } else {
+            paginatedBooks.forEach(book => {
+                const discountedPrice = book.price * ((100 - book.discount) / 100);
+                const row = `
+                    <tr>
+                        <td><img src="${book.imageFile}" alt="${book.productName} Cover"/></td>
+                        <td>${book.productName}</td>
+                        <td>${book.author}</td>
+                        <td>${book.publisher ?? 'Unknown'}</td>
+                        <td>${discountedPrice.toFixed(2) + " VND"}</td>
+                        <td>${book.discount}%</td>
+                        <td>${new Date().toISOString().split('T')[0]}</td>
+                        <td>
+                            <a href="/staff/edit-book/${book.productId}" class="btn btn-sm btn-primary">Edit</a>
+                            <button class="btn btn-sm btn-danger delete-btn" data-product-id="${book.productId}">Delete</button>
+                        </td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+        }
+
+        document.querySelectorAll('.delete-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const productId = this.getAttribute('data-product-id');
+                if (confirm('Are you sure you want to delete this book?')) {
+                    softDeleteBook(productId);
+                }
+            });
+        });
+
+        document.getElementById('books-added').textContent = allBooks.length;
+    }
+
+    function softDeleteBook(productId) {
+        fetch(`http://localhost:8080/api/products/${productId}/soft-delete`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({status: 0})
+        })
+            .then(response => {
+                if (!response.ok) throw new Error('Failed to delete book');
+                return fetchBooks();
+            })
+            .then(() => {
+                alert('Book deleted successfully!');
+            })
+            .catch(error => {
+                console.error('Error deleting book:', error);
+                alert('Failed to delete book. Check console for details.');
+            });
+    }
+
+    function applyFiltersAndSort() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const sortOption = document.getElementById('sortSelect').value;
+
+        console.log('Original books:', allBooks);
+        allBooks = [...originalAllBooks];
+
+        if (searchTerm) {
+            allBooks = allBooks.filter(book => {
+                const matches = (book.productName?.toLowerCase().includes(searchTerm) || false) ||
+                    (book.author?.toLowerCase().includes(searchTerm) || false);
+                console.log(`Book: ${book.productName}, Matches: ${matches}`);
+                return matches;
+            });
+        }
+
+        console.log('Filtered books:', allBooks);
+
+        allBooks.sort((a, b) => {
+            switch (sortOption) {
+                case 'name-asc':
+                    return a.productName.localeCompare(b.productName);
+                case 'name-desc':
+                    return b.productName.localeCompare(a.productName);
+                case 'price-asc':
+                    return a.price * ((100 - a.discount) / 100) - b.price * ((100 - b.discount) / 100);
+                case 'price-desc':
+                    return b.price * ((100 - b.discount) / 100) - a.price * ((100 - a.discount) / 100);
+                default:
+                    return 0;
+            }
+        });
+    }
+
+    function renderPagination() {
+        const totalPages = Math.ceil(allBooks.length / itemsPerPage);
+        const pagination = document.getElementById('pagination');
+        pagination.innerHTML = '';
+
+        const prevButton = document.createElement('button');
+        prevButton.textContent = 'Previous';
+        prevButton.disabled = currentPage === 1;
+        prevButton.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable();
+                renderPagination();
+            }
+        });
+        pagination.appendChild(prevButton);
+
+        for (let i = 1; i <= totalPages; i++) {
+            const pageButton = document.createElement('button');
+            pageButton.textContent = i;
+            pageButton.disabled = i === currentPage;
+            pageButton.addEventListener('click', () => {
+                currentPage = i;
+                renderTable();
+                renderPagination();
+            });
+            pagination.appendChild(pageButton);
+        }
+
+        const nextButton = document.createElement('button');
+        nextButton.textContent = 'Next';
+        nextButton.disabled = currentPage === totalPages;
+        nextButton.addEventListener('click', () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderTable();
+                renderPagination();
+            }
+        });
+        pagination.appendChild(nextButton);
+
+        renderTable();
+    }
+
+    async function fetchRatings() {
+        try {
+            const response = await fetch('http://localhost:8080/ratings');
+            if (!response.ok) throw new Error('Failed to load ratings: ' + response.statusText);
+            originalAllRatings = await response.json();
+            allRatings = [...originalAllRatings];
+
+            const productPromises = allRatings.map(async rating => {
+                try {
+                    const productResponse = await fetch(`http://localhost:8080/api/products/${rating.productId}`);
+                    if (productResponse.ok) {
+                        const product = await productResponse.json();
+                        rating.productName = product.productName || 'Unknown';
+                    } else {
+                        rating.productName = 'Unknown';
+                        console.warn(`Product ${rating.productId} not found, status: ${productResponse.status}`);
+                    }
+                } catch (error) {
+                    console.error(`Error fetching product ${rating.productId}:`, error);
+                    rating.productName = 'Unknown';
+                }
+            });
+            await Promise.all(productPromises);
+
+            applyRatingFiltersAndSort();
+            renderRatingPagination();
+        } catch (error) {
+            console.error('Error fetching ratings:', error);
+            alert('Failed to load ratings. Check the console for details.');
+        }
+    }
+
+    function renderRatingTable() {
+        const tableBody = document.getElementById('rating-table-body');
+        tableBody.innerHTML = '';
+        const startIndex = (currentRatingPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const paginatedRatings = allRatings.slice(startIndex, endIndex);
+        paginatedRatings.forEach(rating => {
+            const statusClass = rating.status ? 'status-active' : 'status-inactive';
+            const row = `
+                <tr>
+                    <td>${rating.ratingId}</td>
+                    <td>${rating.productName || 'Unknown'}</td>
+                    <td>${rating.userName}</td>
+                    <td>${rating.stars}</td>
+                    <td>${new Date(rating.createdAt).toLocaleString('sv-SE', {timeZone: 'Asia/Ho_Chi_Minh'}).slice(0, 19).replace('T', ' ')}</td>
+                    <td>${rating.content}</td>
+                    <td>
+                        <select class="status-select ${statusClass}" id="status-${rating.ratingId}" onchange="updateRatingStatusColor(this, ${rating.ratingId})">
+                            <option value="1" ${rating.status ? 'selected' : ''}>Active</option>
+                            <option value="0" ${!rating.status ? 'selected' : ''}>Inactive</option>
+                        </select>
+                    </td>
+                    <td>
+                        <button class="btn-update" onclick="updateRatingStatus(${rating.ratingId})">Update</button>
+                    </td>
+                </tr>
+            `;
+            tableBody.innerHTML += row;
+        });
+    }
+
+    function updateRatingStatusColor(selectElement, ratingId) {
+        const newStatus = parseInt(selectElement.value);
+        selectElement.classList.remove('status-active', 'status-inactive');
+        selectElement.classList.add(newStatus === 1 ? 'status-active' : 'status-inactive');
+    }
+
+    async function updateRatingStatus(ratingId) {
+        const selectElement = document.getElementById(`status-${ratingId}`);
+        const newStatus = parseInt(selectElement.value) === 1;
+        try {
+            const response = await fetch(`http://localhost:8080/ratings/${ratingId}/status`, {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({status: newStatus})
+            });
+            if (!response.ok) throw new Error('Failed to update rating status: ' + response.statusText);
+            const toast = new bootstrap.Toast(document.getElementById('statusToast'), {delay: 3000});
+            toast.show();
+            await fetchRatings();
+        } catch (error) {
+            console.error('Error updating rating status:', error);
+            alert('Failed to update rating status. Check console for details.');
+            await fetchRatings();
+        }
+    }
+
+    function applyRatingFiltersAndSort() {
+        const searchTerm = document.getElementById('ratingSearchInput').value.toLowerCase();
+        const sortOption = document.getElementById('ratingSortSelect').value;
+        allRatings = [...originalAllRatings];
+        if (searchTerm) {
+            allRatings = allRatings.filter(rating =>
+                rating.ratingId.toString().includes(searchTerm) ||
+                rating.userName.toLowerCase().includes(searchTerm) ||
+                rating.content.toLowerCase().includes(searchTerm) ||
+                (rating.productName && rating.productName.toLowerCase().includes(searchTerm))
+            );
+        }
+        allRatings.sort((a, b) => {
+            switch (sortOption) {
+                case 'id-asc':
+                    return a.ratingId - b.ratingId;
+                case 'id-desc':
+                    return b.ratingId - a.ratingId;
+                case 'stars-asc':
+                    return a.stars - b.stars;
+                case 'stars-desc':
+                    return b.stars - a.stars;
+                case 'date-asc':
+                    return new Date(a.createdAt) - new Date(b.createdAt);
+                case 'date-desc':
+                    return new Date(b.createdAt) - new Date(a.createdAt);
+                case 'username-asc':
+                    return a.userName.localeCompare(b.userName);
+                case 'username-desc':
+                    return b.userName.localeCompare(a.userName);
+                default:
+                    return 0;
+            }
+        });
+    }
+
+    function renderRatingPagination() {
+        const totalPages = Math.ceil(allRatings.length / itemsPerPage);
+        const pagination = document.getElementById('rating-pagination');
+        pagination.innerHTML = '';
+        const prevButton = document.createElement('button');
+        prevButton.textContent = 'Previous';
+        prevButton.disabled = currentRatingPage === 1;
+        prevButton.addEventListener('click', () => {
+            if (currentRatingPage > 1) {
+                currentRatingPage--;
+                renderRatingTable();
+                renderRatingPagination();
+            }
+        });
+        pagination.appendChild(prevButton);
+        for (let i = 1; i <= totalPages; i++) {
+            const pageButton = document.createElement('button');
+            pageButton.textContent = i;
+            pageButton.disabled = i === currentRatingPage;
+            pageButton.addEventListener('click', () => {
+                currentRatingPage = i;
+                renderRatingTable();
+                renderRatingPagination();
+            });
+            pagination.appendChild(pageButton);
+        }
+        const nextButton = document.createElement('button');
+        nextButton.textContent = 'Next';
+        nextButton.disabled = currentRatingPage === totalPages;
+        nextButton.addEventListener('click', () => {
+            if (currentRatingPage < totalPages) {
+                currentRatingPage++;
+                renderRatingTable();
+                renderRatingPagination();
+            }
+        });
+        pagination.appendChild(nextButton);
+        renderRatingTable();
+    }
+</script>
+</body>
+</html>

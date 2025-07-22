@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>LibBook - Online Bookstore</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="/css/home.css"/>
+    <link rel="shortcut icon"
+          href="https://rails-assets-us.bookshop.org/assets/favicon-63cb20989e2516343feeab429626798a43afdaa28eeaba777b7e0acde8a25dd2.png"/>
+    <link rel="stylesheet" href="../../static/css/chat-widget.css">
+    <style>
+        .new-arrivals .carousel-item {
+            padding: 0 15px;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .new-arrivals .book-card {
+            transition: transform 0.3s ease;
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .new-arrivals .book-card img {
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .new-arrivals .book-card .card-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+        }
+
+        .new-arrivals .book-card .card-text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .top-badge {
+             position: absolute;
+             top: 10px;
+             left: 10px;
+             background: gold;
+             color: black;
+             padding: 5px 10px;
+             border-radius: 12px;
+             font-weight: bold;
+             box-shadow: 0 0 5px rgba(0,0,0,0.3);
+             z-index: 10;
+         }
+
+    .combo-card {
+            background-color: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .combo-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .combo-books {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .combo-books .book-card {
+            flex: 1 1 calc(25% - 15px);
+            max-width: calc(25% - 15px);
+            background-color: #f8f9fa;
+        }
+
+        @media (max-width: 768px) {
+            .combo-books .book-card {
+                flex: 1 1 calc(50% - 10px);
+                max-width: calc(50% - 10px);
+            }
+        }
+
+        .carousel-indicators {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+        }
+
+        .carousel-indicators [data-bs-target] {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #fff;
+            border: 1px solid #000;
+            opacity: 0.5;
+            margin: 0 5px;
+        }
+
+        .carousel-indicators .active {
+            opacity: 1;
+            background-color: #000;
+        }
+
+        .custom-carousel-buttons {
+            text-align: center;
+        }
+
+        .custom-carousel-buttons .btn {
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+<div th:insert="~{fragments/navbar :: navbar}"></div>
+
+<section class="hero bg-light py-5 mt-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-3">
+                    Discover Your Next
+                    <span class="text-primary">Great Read</span>
+                </h1>
+                <p class="lead mb-4">Explore thousands of books at your fingertips!</p>
+                <div class="search-form mb-4">
+                    <form th:action="@{/category/search}" method="get" class="bg-white p-4 rounded shadow-sm">
+                        <div class="row g-3">
+                            <div class="col-md-5">
+                                <input type="text" class="form-control" name="searchQuery"
+                                       placeholder="Search by title or author"/>
+                            </div>
+                            <div class="col-md-4">
+                                <select class="form-select" name="selectedTag" id="categorySelect"
+                                        onchange="redirectToCategory()">
+                                    <option value="" selected>All Categories</option>
+                                    <option th:each="tag : ${tags}" th:value="${tag.tagName}"
+                                            th:text="${tag.tagName}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <button type="submit" class="btn btn-primary w-100">Search</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <img src="https://images.unsplash.com/photo-1507842217343-583bb7270b66" alt="Books"
+                     class="img-fluid rounded shadow"/>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- Featured Categories -->
+    <!-- From Uiverse.io by vinodjangid07 -->
+    <section class="featured-categories py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Popular Categories</h2>
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="category-card text-center p-4 bg-white rounded shadow-sm h-100">
+                    <i class="ri-book-line fs-1 text-primary mb-3"></i>
+                    <h4><a th:href="@{/category/Fiction}" style="color: inherit; text-decoration: none;">Fiction</a>
+                    </h4>
+                    <p class="text-muted">Explore imaginative worlds</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="category-card text-center p-4 bg-white rounded shadow-sm h-100">
+                    <i class="ri-lightbulb-line fs-1 text-primary mb-3"></i>
+                    <h4><a th:href="@{/category/Non-Fiction}"
+                           style="color: inherit; text-decoration: none;">Non-Fiction</a></h4>
+                    <p class="text-muted">Expand your knowledge</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="category-card text-center p-4 bg-white rounded shadow-sm h-100">
+                    <i class="ri-heart-line fs-1 text-primary mb-3"></i>
+                    <h4><a th:href="@{/category/Romance}" style="color: inherit; text-decoration: none;">Romance</a>
+                    </h4>
+                    <p class="text-muted">Fall in love with stories</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="category-card text-center p-4 bg-white rounded shadow-sm h-100">
+                    <i class="ri-ghost-line fs-1 text-primary mb-3"></i>
+                    <h4><a th:href="@{/category/Mystery}" style="color: inherit; text-decoration: none;">Mystery</a>
+                    </h4>
+                    <p class="text-muted">Unravel the unknown</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Top Sale -->
+<section id="top-sale" class="new-arrivals py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Top Sale</h2>
+        <div id="top-sale-content">
+            <!-- JavaScript sẽ render sách bán chạy tại đây -->
+        </div>
+    </div>
+</section>
+
+<!-- Book by Tag -->
+<section id="tag-combos" class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">Books by Category</h2>
+        <div id="tag-combo-content" class="row gy-4">
+            <!-- JS sẽ render tại đây -->
+        </div>
+    </div>
+</section>
+
+
+<!-- About Section -->
+<section id="about" class="about py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h2 class="mb-4">Your Ultimate Book Destination</h2>
+                <p class="lead mb-4">Welcome to LibBook, your premier destination for literature of all kinds.</p>
+                <p class="mb-4">
+                    We're passionate about bringing the joy of reading to everyone through our carefully curated
+                    collection of books. With thousands of titles across various genres, competitive prices, and
+                    exceptional customer
+                    service, we strive to make every reading journey special.
+                </p>
+                <a href="#" class="btn btn-primary">Learn More</a>
+            </div>
+            <div class="col-lg-6">
+                <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570" class="img-fluid rounded shadow"
+                     alt="About Us"/>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Customer Reviews -->
+<section class="reviews py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">What Our Readers Say</h2>
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="review-card bg-white p-4 rounded shadow-sm h-100">
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="https://i.postimg.cc/fWCHgFxb/rev1.jpg" class="rounded-circle me-3" width="60"
+                             alt="Sarah"/>
+                        <div>
+                            <h5 class="mb-1">Sarah Nguyễn</h5>
+                            <div class="text-warning">
+                                <i class="ri-star-fill"></i>
+                                <i class="ri-star-fill"></i>
+                                <i class="ri-star-fill"></i>
+                                <i class="ri-star-fill"></i>
+                                <i class="ri-star-half-fill"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-muted">
+                        Great selection of books and amazing prices! The delivery was quick and the books arrived in
+                        perfect
+                        condition.
+                    </p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="review-card bg-white p-4 rounded shadow-sm h-100">
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="https://i.postimg.cc/YSxgCc2G/rev2.jpg" class="rounded-circle me-3" width="60"
+                             alt="Michael"/>
+                        <div>
+                            <h5 class="mb-1">Michael Trần</h5>
+                            <div class="text-warning">
+                                <i class="ri-star-fill"></i>
+                                <i class="ri-star-fill"></i>
+                                <i class="ri-star-fill"></i>
+                                <i class="ri-star-fill"></i>
+                                <i class="ri-star-fill"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-muted">The website is easy to navigate and the recommendations are always spot
+                        on!</p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="review-card bg-white p-4 rounded shadow-sm h-100">
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="https://i.postimg.cc/Qtx7B6V6/rev3.jpg" class="rounded-circle me-3" width="60"
+                             alt="Emily"/>
+                        <div>
+                            <h5 class="mb-1">Emily Võ</h5>
+                            <div class="text-warning">
+                                <i class="ri-star-fill"></i>
+                                <i class="ri-star-fill"></i>
+                                <i class="ri-star-fill"></i>
+                                <i class="ri-star-fill"></i>
+                                <i class="ri-star-fill"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-muted">
+                        Customer service is exceptional! They helped me find a rare book I'd been looking for.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div th:insert="~{fragments/footer :: footer}"></div>
+
+
+<!-- Bootstrap Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/components.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var carousel = new bootstrap.Carousel(document.getElementById('newArrivalsCarousel'), {
+            interval: 5000,
+            wrap: true
+        });
+
+        document.getElementById('prevButton').addEventListener('click', function () {
+            carousel.prev();
+        });
+
+        document.getElementById('nextButton').addEventListener('click', function () {
+            carousel.next();
+        });
+    });
+
+    function redirectToCategory() {
+        var select = document.getElementById('categorySelect');
+        var selectedTag = select.value;
+        if (selectedTag) {
+            window.location.href = '/category/' + encodeURIComponent(selectedTag);
+        }
+    }
+    document.querySelector('.chatBtn').addEventListener('click', function() {
+        // Logic để mở/đóng widget chat
+        console.log('Chat button clicked');
+    });
+</script>
+<script src="/js/home.js"></script>
+</body>
+</html>

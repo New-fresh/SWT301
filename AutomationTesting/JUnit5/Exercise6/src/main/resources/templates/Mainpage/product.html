@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${product.productName} + ' - Books Haven'">Product - Books Haven</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <!-- Remix Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet"/>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/product.css"/>
+    <link rel="shortcut icon"
+          href="https://rails-assets-us.bookshop.org/assets/favicon-63cb20989e2516343feeab429626798a43afdaa28eeaba777b7e0acde8a25dd2.png"/>
+    <style>
+        .ai-help-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff4e50, #f9d423, #4facfe);
+            background-size: 200% 200%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 28px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4), 0 0 15px rgba(255, 215, 0, 0.7);
+            transition: all 0.3s ease;
+            animation: gradientShift 6s ease infinite, pulse 1.5s ease infinite;
+            overflow: visible;
+            cursor: pointer;
+        }
+
+        .ai-help-btn:hover {
+            transform: scale(1.15);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 215, 0, 0.9);
+        }
+
+        .ai-help-btn i {
+            position: relative;
+            z-index: 2;
+        }
+
+        @keyframes gradientShift {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.08);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .ai-help-btn::before, .ai-help-btn::after, .ai-help-btn .star-1, .ai-help-btn .star-2, .ai-help-btn .star-3, .ai-help-btn .star-4 {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: rgba(255, 215, 0, 0.9);
+            border-radius: 50%;
+            z-index: 1;
+            animation: starSparkle 3s infinite linear;
+        }
+
+        .ai-help-btn::before {
+            animation-delay: 0s;
+        }
+
+        .ai-help-btn::after {
+            animation-delay: 0.5s;
+        }
+
+        .ai-help-btn .star-1 {
+            animation-delay: 1s;
+        }
+
+        .ai-help-btn .star-2 {
+            animation-delay: 1.5s;
+        }
+
+        .ai-help-btn .star-3 {
+            animation-delay: 2s;
+        }
+
+        .ai-help-btn .star-4 {
+            animation-delay: 2.5s;
+        }
+
+        @keyframes starSparkle {
+            0% {
+                transform: translate(0, 0) scale(0.5);
+                opacity: 1;
+            }
+            50% {
+                transform: translate(var(--x-move), var(--y-move)) scale(1);
+                opacity: 0.8;
+            }
+            100% {
+                transform: translate(var(--x-move-end), var(--y-move-end)) scale(0.2);
+                opacity: 0;
+            }
+        }
+
+        .ai-help-btn::before {
+            --x-move: 20px;
+            --y-move: -30px;
+            --x-move-end: 40px;
+            --y-move-end: -60px;
+        }
+
+        .ai-help-btn::after {
+            --x-move: -25px;
+            --y-move: 15px;
+            --x-move-end: -50px;
+            --y-move-end: 30px;
+        }
+
+        .ai-help-btn .star-1 {
+            --x-move: 30px;
+            --y-move: 20px;
+            --x-move-end: 60px;
+            --y-move-end: 40px;
+        }
+
+        .ai-help-btn .star-2 {
+            --x-move: -15px;
+            --y-move: -25px;
+            --x-move-end: -30px;
+            --y-move-end: -50px;
+        }
+
+        .ai-help-btn .star-3 {
+            --x-move: 10px;
+            --y-move: 35px;
+            --x-move-end: 20px;
+            --y-move-end: 70px;
+        }
+
+        .ai-help-btn .star-4 {
+            --x-move: -30px;
+            --y-move: -10px;
+            --x-move-end: -60px;
+            --y-move-end: -20px;
+        }
+
+        .ai-help-btn .glow-layer {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.2) 0%, transparent 70%);
+            animation: glow 3s ease infinite;
+            z-index: 1;
+        }
+
+        @keyframes glow {
+            0% {
+                transform: scale(0.9);
+                opacity: 0.5;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(0.9);
+                opacity: 0.5;
+            }
+        }
+
+        .star-rating {
+            display: inline-flex;
+            cursor: pointer;
+            direction: ltr;
+            flex-direction: row;
+        }
+
+        .star-rating i {
+            font-size: 24px;
+            color: #e4e5e9;
+            transition: color 0.2s;
+            margin-right: 5px;
+        }
+
+        .star-rating i.selected {
+            color: #ffc107;
+        }
+
+        .star-rating i.hover {
+            color: #ffca28;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .pagination button {
+            margin: 0 5px;
+            padding: 5px 10px;
+            border: 1px solid #ccc;
+            background: #fff;
+            cursor: pointer;
+        }
+
+        .pagination button.active {
+            background: #007bff;
+            color: #fff;
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+        }
+    </style>
+</head>
+<body>
+<div th:insert="~{fragments/navbar :: navbar}"></div>
+<section class="product-details py-5 mt-5">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/home}">Home</a></li>
+                <li class="breadcrumb-item"><a href="#">Fiction</a></li>
+                <li class="breadcrumb-item active" aria-current="page" th:text="${product.productName}">Product Name
+                </li>
+            </ol>
+        </nav>
+        <div class="row g-4">
+            <div class="col-lg-5">
+                <div class="product-gallery">
+                    <img th:src="${product.imageFile}" alt="Book cover" class="img-fluid rounded shadow"/>
+                    <div class="row g-2 mt-2">
+                        <div class="col-3">
+                            <img th:src="${product.imageFile}" alt="Thumbnail 1"
+                                 class="img-fluid rounded cursor-pointer border"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-7">
+                <div class="product-info">
+                    <span class="badge bg-primary mb-2">Book</span>
+                    <h1 class="mb-2" th:text="${product.productName}">Product Name</h1>
+                    <h5 class="text-muted mb-4" th:text="${product.author}">Author Not Available</h5>
+                    <div class="align-items-center mb-4">
+                        <div class="d-flex-start justify-content-between align-items-center">
+                            <span style="font-size: 18px; color: red;" th:if="${product.discount > 0}"
+                                  class="h5 mb-0 text-decoration-line-through ms-2"
+                                  th:text="${#numbers.formatDecimal(product.price, 2, 2)} + ' VND'">
+                            </span>
+                            <span style="font-size: 18px; color: red; margin-right: 20px"
+                                  th:if="${product.discount > 0}"
+                                  class="h5 mb-0 text-decoration ms-2"
+                                  th:text="'(-' + ${product.discount} + '%)'">
+                            </span>
+                            <span style="font-size: 22px;font-weight: bold; margin-right: 20px"
+                                  th:with="discountedPrice=${product.discount > 0 ? product.price * (100 - product.discount) / 100 : product.price}"
+                                  th:text="${#numbers.formatDecimal(discountedPrice, 2, 2)}+' VND'">
+                            </span>
+                        </div>
+                        <div class="badge bg-success" style="margin-top: 20px"
+                             th:text="'In Stock: ' + ${product.available}">In Stock
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h4>Description</h4>
+                        <p th:text="${product.description}">Description Not Available</p>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Book Details</h5>
+                                <table class="table">
+                                    <tbody>
+                                    <tr>
+                                        <td>Buys:</td>
+                                        <td th:text="${product.buys}">0</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Available:</td>
+                                        <td th:text="${product.available}">0</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Price:</td>
+                                        <td th:with="discountedPrice=${product.discount > 0 ? product.price * (100 - product.discount) / 100 : product.price}"
+                                            th:text="${#numbers.formatDecimal(discountedPrice, 2, 2)}+' VND'">0.00 VND
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Rating:</td>
+                                        <td th:text="${product.rating}">0.0</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="quantity-selector me-3">
+                            <button class="btn btn-outline-secondary" onclick="decreaseQuantity()">-</button>
+                            <span class="mx-3" id="quantity">1</span>
+                            <button class="btn btn-outline-secondary" onclick="increaseQuantity()">+</button>
+                        </div>
+                        <button class="btn btn-primary btn-lg" onclick="addToCart(product)">
+                            <i class="ri-shopping-cart-line me-2"></i>
+                            Add to Cart
+                        </button>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <i class="ri-truck-line fs-4 me-2 text-primary"></i>
+                                <div>
+                                    <h6 class="mb-0">Free Shipping</h6>
+                                    <small class="text-muted">On orders over $35</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <i class="ri-refresh-line fs-4 me-2 text-primary"></i>
+                                <div>
+                                    <h6 class="mb-0">Easy Returns</h6>
+                                    <small class="text-muted">30 days return policy</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <i class="ri-shield-check-line fs-4 me-2 text-primary"></i>
+                                <div>
+                                    <h6 class="mb-0">Secure Payment</h6>
+                                    <small class="text-muted">100% secure checkout</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Help Button -->
+        <div id="chatbot-icon" class="ai-help-btn" title="AI Help">
+            <i class="ri-robot-line"></i>
+            <span class="star-1"></span>
+            <span class="star-2"></span>
+            <span class="star-3"></span>
+            <span class="star-4"></span>
+            <span class="glow-layer"></span>
+        </div>
+
+        <!-- Chat window (ẩn ban đầu) -->
+        <div id="chatbot-window">
+            <div id="chatbot-response">Đang xử lý...</div>
+            <button onclick="closeChatbot()">Đóng</button>
+        </div>
+
+    </div>
+</section>
+
+<!-- Reviews and Comments -->
+<section class="reviews-comments py-5">
+    <div class="container">
+        <h3 class="mb-4">Reviews</h3>
+        <div class="row g-4">
+            <div class="col-lg-12">
+                <div class="mb-4" id="averageRating"></div>
+                <div class="card p-3 mb-4">
+                    <h5>Add Your Review</h5>
+                    <form id="reviewForm">
+                        <input type="hidden" name="productId" th:value="${product.productId}"/>
+                        <input type="hidden" id="ratingValue" name="stars" value="0"/>
+                        <div class="mb-3">
+                            <label for="ratingValue" class="form-label">Rating</label>
+                            <div class="star-rating" id="starRating">
+                                <i class="ri-star-fill" data-value="1"></i>
+                                <i class="ri-star-fill" data-value="2"></i>
+                                <i class="ri-star-fill" data-value="3"></i>
+                                <i class="ri-star-fill" data-value="4"></i>
+                                <i class="ri-star-fill" data-value="5"></i>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="review-text" class="form-label">Your Review</label>
+                            <textarea id="review-text" class="form-control" rows="3" name="content"
+                                      placeholder="Write your review here..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit Review</button>
+                    </form>
+                </div>
+                <div class="review-list" id="reviewList"></div>
+                <div class="pagination" id="pagination"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Related Books -->
+<section class="related-books py-5 bg-light">
+    <div class="container">
+        <h3 class="mb-4">You May Also Like</h3>
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-6" th:each="relatedProduct : ${relatedProjects}">
+                <div class="book-card bg-white rounded shadow-sm h-100">
+                    <img th:src="${relatedProduct.imageFile}"
+                         class="card-img-top"
+                         alt="Related Book"/>
+                    <div class="card-body">
+                        <p class="text-primary mb-1">Book</p>
+                        <h5 class="card-title" th:text="${relatedProduct.productName}">Related Product</h5>
+                        <p class="card-text text-muted">Author Not Available</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="h5 mb-0" th:text="${#numbers.formatDecimal(relatedProduct.price, 2, 2)+' VND'}">$0.00</span>
+                            <a th:href="@{/product/{id}(id=${relatedProduct.productId})}"
+                               class="btn btn-outline-primary">View Details</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer Placeholder -->
+<div th:insert="~{fragments/footer :: footer}"></div>
+<div class="toast-container">
+    <div class="toast" id="notificationToast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <strong class="me-auto" id="toastTitle"></strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body" id="toastMessage"></div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Custom JS -->
+<!-- Chatbot -->
+<script>
+    document.getElementById("chatbot-icon").addEventListener("click", async () => {
+        document.getElementById("chatbot-window").style.display = "block";
+
+        const productId = getProductIdFromURL();
+        const productResponse = await fetch(`/api/products/${productId}`);
+        if (!productResponse.ok) {
+            document.getElementById("chatbot-response").innerText = "Không thể tải thông tin sản phẩm. Kiểm tra ID: " + productId;
+            console.error("Fetch error:", await productResponse.text());
+            return;
+        }
+        const product = await productResponse.json();
+
+        const summary = await fetchChatbotSummary(product.productName);
+        document.getElementById("chatbot-response").innerText = summary;
+    });
+
+    function closeChatbot() {
+        document.getElementById("chatbot-window").style.display = "none";
+    }
+
+    function getProductIdFromURL() {
+        const pathParts = window.location.pathname.split("/");
+        return pathParts[pathParts.length - 1];
+    }
+
+    async function fetchChatbotSummary(bookTitle) {
+        const response = await fetch("/api/chatbot/summarize", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({title: bookTitle}),
+        });
+        if (!response.ok) {
+            console.error("Chatbot error:", await response.text());
+            return "Không thể lấy tóm tắt sách. Vui lòng thử lại sau.";
+        }
+        const data = await response.json();
+        return data.summary || "Không có tóm tắt.";
+    }
+</script>
+
+<script src="/js/components.js"></script>
+<script th:inline="javascript">
+    <!--    Message-->
+    const toastEl = document.getElementById('notificationToast');
+    const toast = new bootstrap.Toast(toastEl, {delay: 5000});
+
+    function showToast(title, message, type = 'success') {
+        const toastTitle = document.getElementById('toastTitle');
+        const toastMessage = document.getElementById('toastMessage');
+        toastTitle.textContent = title;
+        toastMessage.textContent = message;
+        toastEl.classList.remove('bg-success', 'bg-danger');
+        toastEl.classList.add(type === 'success' ? 'bg-success' : 'bg-danger');
+        toastEl.querySelector('.toast-header').classList.remove('bg-success', 'bg-danger');
+        toastEl.querySelector('.toast-header').classList.add(type === 'success' ? 'bg-success' : 'bg-danger');
+        toast.show();
+    }
+
+
+    let quantity = 1;
+    let product = [[${product}]];
+    console.log(product)
+    const quantityDisplay = document.getElementById("quantity");
+
+    function increaseQuantity() {
+        if (quantity >= product.available) {
+            return;
+        }
+        quantity++;
+        quantityDisplay.textContent = quantity;
+    }
+
+    function decreaseQuantity() {
+        if (quantity > 1) {
+            quantity--;
+            quantityDisplay.textContent = quantity;
+        }
+    }
+
+
+    const addToCart = async (product) => {
+        const cartItem = {
+            productId: product.productId,
+            quantity: quantity
+        };
+
+        await fetch('/cart/api/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(cartItem)
+        })
+            .then(response => {
+                if (response.status === 401) {
+                    showToast("Login required", "You need to login", 'danger');
+                } else if (response.ok) {
+                    showToast("Successfully", "Add to cart successfully!");
+
+                }
+            })
+            .catch(error => console.error('Lỗi:', error));
+    };
+
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const stars = document.querySelectorAll('#starRating i');
+        const ratingInput = document.getElementById('ratingValue');
+        const reviewForm = document.getElementById('reviewForm');
+        const reviewList = document.getElementById('reviewList');
+        const averageRatingDiv = document.getElementById('averageRating');
+        const pagination = document.getElementById('pagination');
+        const productId = document.querySelector('input[name="productId"]').value;
+        let currentPage = 1;
+        const reviewsPerPage = 5;
+        stars.forEach(star => {
+            star.addEventListener('click', () => {
+                const value = parseInt(star.getAttribute('data-value'));
+                ratingInput.value = value;
+                stars.forEach(s => s.classList.remove('selected'));
+                for (let i = 0; i < stars.length; i++) {
+                    if (parseInt(stars[i].getAttribute('data-value')) <= value) {
+                        stars[i].classList.add('selected');
+                    }
+                }
+            });
+            star.addEventListener('mouseover', () => {
+                stars.forEach(s => s.classList.remove('hover'));
+                const value = parseInt(star.getAttribute('data-value'));
+                for (let i = 0; i < stars.length; i++) {
+                    const starValue = parseInt(stars[i].getAttribute('data-value'));
+                    if (starValue <= value) {
+                        stars[i].classList.add('hover');
+                    } else {
+                        break;
+                    }
+                }
+            });
+            star.addEventListener('mouseout', () => {
+                stars.forEach(s => s.classList.remove('hover'));
+            });
+        });
+        reviewForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const stars = document.getElementById('ratingValue').value;
+            const content = document.getElementById('review-text').value;
+            const productId = document.querySelector('input[name="productId"]').value;
+
+            const response = await fetch('/ratings/submitted', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include', // Đảm bảo gửi cookie session
+                body: JSON.stringify({
+                    productId: parseInt(productId),
+                    stars: parseInt(stars),
+                    content: content
+                })
+            });
+
+            if (response.ok) {
+                showToast('Success', 'Rating submitted successfully!', 'success');
+                reviewForm.reset();
+                stars.forEach(s => s.classList.remove('selected'));
+                document.getElementById('ratingValue').value = '0';
+                fetchReviews();
+            } else {
+                const errorMessage = await response.text();
+                showToast('Error', errorMessage || 'Failed to submit rating.', 'error');
+            }
+        });
+
+        function fetchReviews() {
+            console.log('Fetching reviews for productId:', productId); // Debug
+            fetch(`/ratings/${productId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (!data || data.length === 0) {
+                        averageRatingDiv.innerHTML = '<p class="text-muted">Chưa có đánh giá</p>';
+                        reviewList.innerHTML = '';
+                        pagination.innerHTML = '';
+                        return;
+                    }
+                    data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    const totalStars = data.reduce((sum, review) => sum + review.stars, 0);
+                    const averageRating = totalStars / data.length || 0;
+                    averageRatingDiv.innerHTML = `
+                            <div class="d-flex align-items-center mb-2">
+                                <h5 class="me-2 mb-0">${averageRating.toFixed(1)} / 5</h5>
+                                <div class="star-rating">
+                                    ${'<i class="ri-star-fill text-warning"></i>'.repeat(Math.floor(averageRating)) +
+                    '<i class="ri-star-fill text-muted"></i>'.repeat(5 - Math.floor(averageRating))}
+                                </div>
+                                <span class="ms-2 text-muted">(${data.length} reviews)</span>
+                            </div>
+                        `;
+                    const totalPages = Math.ceil(data.length / reviewsPerPage);
+                    const startIndex = (currentPage - 1) * reviewsPerPage;
+                    const endIndex = startIndex + reviewsPerPage;
+                    const paginatedReviews = data.slice(startIndex, endIndex);
+                    reviewList.innerHTML = paginatedReviews.map(review => `
+                            <div class="card p-3 mb-2">
+                                <div class="d-flex align-items-center mb-2">
+                                    <img src="https://i.pravatar.cc/40?img=${review.userId}" alt="User Avatar" class="rounded-circle me-2" style="width: 40px; height: 40px;"/>
+                                    <div>
+                                        <strong>${review.userName}</strong>
+                                        <div class="star-rating">
+                                            ${'<i class="ri-star-fill text-warning"></i>'.repeat(review.stars) +
+                    '<i class="ri-star-fill text-muted"></i>'.repeat(5 - review.stars)}
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="text-muted">${review.content}</p>
+                                <small class="text-muted">Posted on ${new Date(review.createdAt).toLocaleString()}</small>
+                            </div>
+                        `).join('');
+                    pagination.innerHTML = '';
+                    for (let i = 1; i <= totalPages; i++) {
+                        const button = document.createElement('button');
+                        button.textContent = i;
+                        button.className = i === currentPage ? 'active' : '';
+                        button.addEventListener('click', () => {
+                            currentPage = i;
+                            fetchReviews();
+                        });
+                        pagination.appendChild(button);
+                    }
+                })
+                .catch(error => console.error('Error fetching reviews:', error));
+        }
+
+        fetchReviews();
+    });
+</script>
+</body>
+</html>
